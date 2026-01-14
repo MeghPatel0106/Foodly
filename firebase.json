@@ -1,0 +1,56 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/templates/index.html"
+      },
+      {
+        "source": "/index.html",
+        "destination": "/templates/index.html"
+      },
+      {
+        "source": "/admin.html",
+        "destination": "/templates/admin.html"
+      },
+      {
+        "source": "/analytics.html",
+        "destination": "/templates/analytics.html"
+      },
+      {
+        "source": "/cart.html",
+        "destination": "/templates/cart.html"
+      },
+      {
+        "source": "/dashboard.html",
+        "destination": "/templates/dashboard.html"
+      },
+      {
+        "source": "/invoices.html",
+        "destination": "/templates/invoices.html"
+      },
+      {
+        "source": "/menu.html",
+        "destination": "/templates/menu.html"
+      },
+      {
+        "source": "/orders.html",
+        "destination": "/templates/orders.html"
+      },
+      {
+        "source": "/settings.html",
+        "destination": "/templates/settings.html"
+      },
+      {
+        "source": "/404.html",
+        "destination": "/templates/404.html"
+      }
+    ]
+  }
+}

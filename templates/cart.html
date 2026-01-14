@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-VXEHBX2S2V', {
+            send_page_view: true
+        });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .cart-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .cart-item-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .cart-item-img {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+        }
+
+        .cart-item-title {
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .cart-item-price {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .cart-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f8f8;
+            padding: 4px 8px;
+            border-radius: var(--radius-full);
+        }
+
+        .qty-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .qty-val {
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .cart-summary {
+            background: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-top: var(--spacing-xl);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .summary-total {
+            border-top: 1px solid var(--border-color);
+            padding-top: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        #empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="user-sidebar">
+        <div class="user-sidebar-header">
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">×</button>
+            <a href="menu.html" class="user-sidebar-logo">
+                <img src="../images/logo.png" alt="Logo" width="30">
+                Foodly
+            </a>
+        </div>
+
+        <ul class="user-sidebar-menu">
+            <li>
+                <a href="dashboard.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📊</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
+                    <span class="user-sidebar-icon">🍽️</span>
+                    Meal
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
+                    <span class="user-sidebar-icon">🍿</span>
+                    Quick Snacks
+                </a>
+            </li>
+            <li>
+                <a href="orders.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📦</span>
+                    Order
+                </a>
+            </li>
+            <li>
+                <a href="invoices.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🧾</span>
+                    Invoice
+                </a>
+            </li>
+            <li>
+                <a href="cart.html" class="user-sidebar-link active">
+                    <span class="user-sidebar-icon">🛒</span>
+                    Cart
+                    <span id="cart-count"
+                        style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="analytics.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📈</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">⚙️</span>
+                    Setting
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-sidebar-footer">
+
+            <button id="sidebar-auth-btn" class="btn btn-sm text-danger"
+                style="margin-top: 10px; padding-left: 0; color: #ef4444; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;">
+                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2-2v4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span id="sidebar-auth-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="user-main-content">
+        <nav class="user-top-navbar">
+            <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                ☰
+            </button>
+            <div class="navbar-content-end">
+
+
+
+                <!-- Notification Bell -->
+                <div class="notification-icon-wrapper" onclick="toggleNotifications()">
+                    <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                    <span class="badge" id="nav-notification-badge" style="display: none;"></span>
+                </div>
+
+                <!-- Profile Widget -->
+                <div class="user-profile-widget" onclick="openProfile()"
+                    style="border: none; box-shadow: none; background: transparent;">
+                    <div class="user-info-text">
+                        <span class="user-name" id="top-nav-name">...</span>
+                        <span class="user-email" id="top-nav-email"
+                            style="font-size: 0.75rem; color: var(--text-light);"></span>
+                    </div>
+                    <img id="top-nav-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                        class="user-avatar-circle" alt="Profile">
+                </div>
+            </div>
+        </nav>
+
+        <div class="container animate-fade-in" style="margin-top: 2rem; max-width: 800px;">
+            <h1 class="mb-4">Your Cart</h1>
+
+            <div id="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+                <h3>Your cart is empty</h3>
+                <p class="text-muted">Looks like you haven't added anything yet.</p>
+                <a href="menu.html" class="btn btn-primary" style="margin-top: 1rem;">Browse Menu</a>
+            </div>
+
+            <div id="cart-content">
+                <div id="cart-items">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span class="text-muted">Loading... Please wait🥲</span>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal (Unified) -->
+        <div class="modal-overlay" id="profile-modal">
+            <div class="modal-card">
+                <button class="close-btn" onclick="closeProfile()"
+                    style="position: absolute; top: 15px; right: 15px; font-size: 1.5rem; color: #999;">&times;</button>
+                <h2 class="mb-4">My Profile</h2>
+
+                <div class="text-center">
+                    <img id="avatar-preview" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                        style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 10px;">
+                    <p class="text-muted text-sm mb-4">Select Avatar</p>
+
+                    <div class="avatar-grid" id="avatar-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="profile-name" class="form-input" placeholder="Enter your name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email (Read Only)</label>
+                    <input type="email" id="profile-email" class="form-input" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="tel" id="profile-phone" class="form-input" placeholder="Enter mobile number"
+                        maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select id="profile-gender" class="form-input">
+                        <option value="" disabled selected>Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveProfile()">Save
+                    Profile</button>
+            </div>
+        </div>
+        </div> <!-- End main-app-content -->
+    </main>
+
+    <script src="../js/mock-data.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+            authDomain: "foodly-40d16.firebaseapp.com",
+            projectId: "foodly-40d16",
+            storageBucket: "foodly-40d16.firebasestorage.app",
+            messagingSenderId: "74040922594",
+            appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+        };
+        // Use SAME firebaseConfig as index.html
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+        const functions = firebase.functions();
+    </script>
+    <script src="../js/main.js"></script>
+    <script>
+        // STRICT USER PROTECTION
+        firebase.auth().onAuthStateChanged(async (user) => {
+            updateSidebarAuthUI(user); // Update Sidebar
+
+            if (!user) {
+                // Show Lock Screen
+                document.getElementById('main-app-content').style.display = 'none';
+                document.getElementById('locked-view').style.display = 'block';
+                return;
+            }
+
+            // Logged In: Show Content
+            document.getElementById('locked-view').style.display = 'none';
+            document.getElementById('main-app-content').style.display = 'block';
+
+            const snap = await firebase.firestore()
+                .collection("users")
+                .doc(user.uid)
+                .get();
+
+            if (snap.exists && snap.data().role === "admin") {
+                window.location.href = "admin.html";
+            }
+        });
+        const auth = firebase.auth();
+
+        async function submitOrder(type) {
+            const user = auth.currentUser;
+
+            if (!user) {
+                alert("Please login first");
+                return;
+            }
+
+            if (!cart || cart.length === 0) {
+                alert("Cart is empty");
+                return;
+            }
+
+            let checkoutItems = [];
+            let orderLabel = 'Order';
+
+            if (type === 'meal') {
+                checkoutItems = cart.filter(i => i.type !== 'quick' && i.type !== 'quick-snack');
+                orderLabel = 'Meal Order';
+            } else if (type === 'quick-snack') {
+                checkoutItems = cart.filter(i => i.type === 'quick' || i.type === 'quick-snack');
+                orderLabel = 'Quick Snack Order';
+            } else {
+                checkoutItems = [...cart];
+            }
+
+            if (checkoutItems.length === 0) {
+                alert("No items to checkout in this section.");
+                return;
+            }
+
+            const totalAmount = checkoutItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            // Fetch User Phone Number for Razorpay (REQUIRED for UPI/QR in Test Mode)
+            let contactNumber = "9999999999"; // Default Test Number
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    if (data.phoneNumber && data.phoneNumber.length >= 10) {
+                        contactNumber = data.phoneNumber;
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not fetch user phone number for checkout prefill", err);
+            }
+
+            // RAZORPAY FRONTEND-ONLY FLOW (Spark Plan Compatible)
+            try {
+                // Configure Razorpay Options Directly
+                const options = {
+                    "key": "rzp_test_S3I7jVdtrPsKRN", // Frontend Key ID (Updated)
+                    "amount": totalAmount * 100, // Amount in paisa
+                    "currency": "INR",
+                    "name": "Foodly Canteen",
+                    "description": `Payment for ${orderLabel}`,
+                    "image": "images/logo.png",
+                    "handler": async function (response) {
+                        // ON SUCCESS: Place Order in Firestore
+                        await placeFirestoreOrder(user, checkoutItems, totalAmount, orderLabel, response.razorpay_payment_id);
+                    },
+                    "prefill": {
+                        "name": user.displayName || "",
+                        "email": user.email || "",
+                        "contact": contactNumber // Now Populated
+                    },
+                    "theme": {
+                        "color": "#FF6B6B"
+                    },
+                    "modal": {
+                        "ondismiss": function () {
+                            console.log('Checkout form closed');
+                        }
+                    }
+                };
+
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response) {
+                    alert("Payment Failed: " + response.error.description);
+                });
+                rzp1.open();
+
+            } catch (error) {
+                console.error("Payment Init Error:", error);
+                alert("Failed to initiate payment: " + error.message);
+            }
+        }
+
+        async function placeFirestoreOrder(user, items, totalAmount, orderLabel, paymentId) {
+            try {
+                // Fetch user name first
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const customerName = userData.name || user.displayName || "User";
+
+                // Generate Order Number
+                const lastOrderSnap = await db.collection('orders')
+                    .orderBy('createdAt', 'desc')
+                    .limit(1)
+                    .get();
+
+                let nextOrderNumber = 'A-001';
+
+                if (!lastOrderSnap.empty) {
+                    const lastOrder = lastOrderSnap.docs[0].data();
+                    if (lastOrder.orderNumber) {
+                        const parts = lastOrder.orderNumber.split('-');
+                        if (parts.length === 2) {
+                            let letter = parts[0];
+                            let number = parseInt(parts[1]);
+
+                            if (number < 999) {
+                                number++;
+                            } else {
+                                number = 1;
+                                letter = String.fromCharCode(letter.charCodeAt(0) + 1);
+                            }
+                            nextOrderNumber = `${letter}-${String(number).padStart(3, '0')}`;
+                        }
+                    }
+                }
+
+                // Check for Quick Meals
+                const allQuick = items.every(item => item.type === 'quick' || item.type === 'quick-snack');
+                const initialStatus = allQuick ? 'Ready' : 'Pending';
+
+                // Create Order
+                await db.collection("orders").add({
+                    userId: user.uid,
+                    customerName: customerName,
+                    items: items,
+                    total: totalAmount,
+                    status: initialStatus,
+                    orderNumber: nextOrderNumber,
+                    orderType: orderLabel,
+                    paymentId: paymentId,
+                    paymentStatus: 'Paid',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // GOOGLE ANALYTICS
+                gtag('event', 'place_order', {
+                    order_id: nextOrderNumber,
+                    total_amount: totalAmount,
+                    items_count: items.length
+                });
+
+                // Remove processed items from cart
+                const processedIds = new Set(items.map(i => i.id));
+                cart = cart.filter(i => !processedIds.has(i.id));
+
+                // Save updated cart
+                localStorage.setItem(`foodly_cart_${user.uid}`, JSON.stringify(cart));
+                localStorage.removeItem(`cachedOrders_${user.uid}`);
+                window.location.href = "orders.html";
+
+            } catch (error) {
+                alert("Error placing order after payment: " + error.message);
+                console.error("Order error:", error);
+            }
+        }
+    </script>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.user-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+    </script>
+</body>
+
+</html>

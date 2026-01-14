@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="user-sidebar">
+        <div class="user-sidebar-header">
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">×</button>
+            <a href="menu.html" class="user-sidebar-logo">
+                <img src="../images/logo.png" alt="Logo" width="30">
+                Foodly
+            </a>
+        </div>
+
+        <ul class="user-sidebar-menu">
+            <li>
+                <a href="dashboard.html" class="user-sidebar-link active">
+                    <span class="user-sidebar-icon">📊</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
+                    <span class="user-sidebar-icon">🍽️</span>
+                    Meal
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
+                    <span class="user-sidebar-icon">🍿</span>
+                    Quick Snacks
+                </a>
+            </li>
+            <li>
+                <a href="orders.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📦</span>
+                    Order
+                </a>
+            </li>
+            <li>
+                <a href="invoices.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🧾</span>
+                    Invoice
+                </a>
+            </li>
+            <li>
+                <a href="cart.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🛒</span>
+                    Cart
+                    <span id="cart-count"
+                        style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="analytics.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📈</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">⚙️</span>
+                    Setting
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-sidebar-footer">
+
+            <button id="sidebar-auth-btn" class="btn btn-sm"
+                style="margin-top: 10px; padding-left: 0; color: var(--primary-color); display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;"
+                onclick="window.location.href='index.html'">
+                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                    <polyline points="10 17 15 12 10 7"></polyline>
+                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+                <span id="sidebar-auth-text">Login</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="user-main-content">
+        <!-- LOADING VIEW (Default) -->
+        <div id="loading-view" style="display: flex; justify-content: center; align-items: center; height: 80vh;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p style="margin-left: 10px; color: #666;">Verifying access...</p>
+        </div>
+
+        <!-- LOCKED VIEW (Hidden by default) -->
+        <div id="locked-view" style="display: block; text-align: center; padding-top: 100px;">
+            <div
+                style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                <h2 style="margin-bottom: 10px;">Login Required</h2>
+                <p class="text-muted" style="margin-bottom: 30px;">Please login or register to access your dashboard.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <a href="index.html" class="btn btn-primary"
+                        style="text-decoration: none; padding: 10px 30px;">Login</a>
+                    <a href="index.html" class="btn btn-secondary"
+                        style="text-decoration: none; padding: 10px 30px;">Register</a>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="checkAuthManual()"
+                        style="background:none; border:none; text-decoration:underline; color:#666; cursor:pointer;">
+                        I am already logged in (Refresh)
+                    </button>
+                    <div id="auth-debug-msg" style="font-size: 0.8rem; color: #999; margin-top: 5px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function checkAuthManual() {
+                const msg = document.getElementById('auth-debug-msg');
+                msg.innerText = "Checking...";
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    msg.innerText = "User found! Reloading...";
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    msg.innerText = "No user detected. Please login again.";
+                }
+            }
+        </script>
+
+        <div id="main-app-content" style="display: none;">
+            <nav class="user-top-navbar">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                    ☰
+                </button>
+                <div class="navbar-content-end">
+
+
+                    <!-- Notification Bell -->
+                    <div class="notification-icon-wrapper" onclick="toggleNotifications()">
+                        <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                        <span class="badge" id="nav-notification-badge" style="display: none;"></span>
+                    </div>
+
+                    <!-- Profile Widget -->
+                    <div class="user-profile-widget" onclick="openProfile()"
+                        style="border: none; box-shadow: none; background: transparent;">
+                        <div class="user-info-text">
+                            <span class="user-name" id="top-nav-name">...</span>
+                            <span class="user-email" id="top-nav-email"
+                                style="font-size: 0.75rem; color: var(--text-light);"></span>
+                        </div>
+                        <img id="top-nav-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                            class="user-avatar-circle" alt="Profile">
+                    </div>
+                </div>
+            </nav>
+            <div class="container animate-fade-in" style="margin-top: 2rem;">
+                <!-- Dashboard Grid -->
+                <div class="dashboard-grid">
+
+                    <!-- 1. Welcome & Notice Card -->
+                    <div class="dash-card notice-card">
+                        <div>
+                            <h2 id="dash-welcome">Welcome back!</h2>
+                            <p class="text-sm opacity-90" id="dash-date">...</p>
+                        </div>
+                        <div class="notice-badge">Today's Special</div>
+                        <p class="mt-2" style="font-weight: 500;">🌶️ Spicy Paneer Wrap is 20% off today!</p>
+                    </div>
+
+                    <!-- 2. Monthly Spend Summary -->
+                    <div class="dash-card stat-card">
+                        <h3>Monthly Summary</h3>
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="stat-value" id="stat-count">0</span>
+                                <span class="stat-label">Orders</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <span class="stat-value">₹<span id="stat-total">0</span></span>
+                                <span class="stat-label">Spent</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Your Favourites -->
+                    <section class="dashboard-section animate-slide-up"
+                        style="grid-column: 1 / -1; margin-top: 1.5rem;">
+                        <h3 class="section-title">Your Favourites ❤️</h3>
+                        <div id="favourites-list" class="dashboard-grid"
+                            style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                            <!-- Favourites injected here -->
+                            <div class="text-muted" style="padding: 2rem; grid-column: 1/-1; text-align: center;">
+                                Loading
+                                favourites...</div>
+                        </div>
+                    </section>
+
+                    <!-- 3. Active Order Status -->
+                    <div class="dash-card status-card">
+                        <h3>Latest Order</h3>
+                        <div id="active-order-content">
+                            <p class="text-muted text-sm">No active orders.</p>
+                            <a href="menu.html" class="btn-text">Order Now →</a>
+                        </div>
+                    </div>
+
+                    <!-- 4. Quick Actions -->
+                    <div class="dash-card actions-card">
+                        <h3>Quick Actions</h3>
+                        <div class="action-buttons">
+                            <a href="menu.html" class="dash-action-btn">
+                                <span class="icon">🍔</span> Order Food
+                            </a>
+                            <a href="cart.html" class="dash-action-btn">
+                                <span class="icon">🛒</span> View Cart
+                            </a>
+                            <a href="orders.html" class="dash-action-btn">
+                                <span class="icon">📦</span> My Orders
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 5. Recent Favorites -->
+                    <div class="dash-card recent-card" style="grid-column: 1 / -1;">
+                        <h3>Order Again</h3>
+                        <div class="recent-items-scroll" id="recent-items-list">
+                            <!-- Populated by JS -->
+                            <div class="text-muted text-sm" style="padding: 1rem;">No history yet.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Profile Modal (Added for Dashboard) -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">My Profile</h2>
+                <button onclick="closeProfile()" class="close-btn"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                <img id="avatar-preview" src="" alt="Profile Avatar"
+                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #f3f3f3; box-shadow: var(--shadow-sm);">
+            </div>
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <label class="form-label">Select Avatar</label>
+                <div class="avatar-grid" id="avatar-grid">
+                    <!-- Avatars populated by JS -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="profile-name" class="form-input" placeholder="Your Name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email (Read Only)</label>
+                <input type="email" id="profile-email" class="form-input" disabled
+                    style="background-color: #f0f0f0; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="profile-phone" class="form-input" placeholder="Enter phone number"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="profile-gender" class="form-input">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                Save Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+            authDomain: "foodly-40d16.firebaseapp.com",
+            projectId: "foodly-40d16",
+            storageBucket: "foodly-40d16.firebasestorage.app",
+            messagingSenderId: "74040922594",
+            appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        } else {
+            firebase.app();
+        }
+
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // UI Elements
+        const authBtnDefault = document.getElementById('sidebar-auth-btn');
+        const authTextDefault = document.getElementById('sidebar-auth-text');
+        const authIconDefault = document.getElementById('sidebar-auth-icon');
+        const lockedView = document.getElementById('locked-view');
+        const mainContent = document.getElementById('main-app-content');
+        const loadingView = document.getElementById('loading-view');
+
+        // Initial State: Show Loading, Hide others
+        if (loadingView) loadingView.style.display = 'flex';
+        if (lockedView) lockedView.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'none';
+
+        // Helper: Update UI for Logged In User
+        async function handleLoggedIn(user) {
+            console.log("Auth: User detected", user.uid);
+
+            // Update Sidebar
+            if (authTextDefault) authTextDefault.innerText = "Logout";
+            if (authBtnDefault) {
+                authBtnDefault.onclick = () => { if (window.logout) window.logout(); else auth.signOut().then(() => window.location.reload()); };
+                authBtnDefault.classList.add('text-danger');
+                authBtnDefault.style.color = '#ef4444';
+            }
+            if (authIconDefault) authIconDefault.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>';
+
+            // Show Content
+            if (loadingView) loadingView.style.display = 'none';
+            if (lockedView) lockedView.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'block';
+
+            // Check Admin
+            try {
+                const snap = await db.collection("users").doc(user.uid).get();
+                if (snap.exists && snap.data().role === "admin") {
+                    window.location.href = "admin.html";
+                }
+            } catch (e) { console.error("Admin check failed", e); }
+        }
+
+        // Helper: Update UI for Guest
+        function handleGuest() {
+            console.log("Auth: No user (Guest)");
+
+            // Update Sidebar
+            if (authTextDefault) authTextDefault.innerText = "Login";
+            if (authBtnDefault) {
+                authBtnDefault.onclick = () => window.location.href = 'index.html';
+                authBtnDefault.classList.remove('text-danger');
+                authBtnDefault.style.color = 'var(--primary-color)';
+            }
+
+            // Show Lock Screen
+            if (loadingView) loadingView.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'none';
+            if (lockedView) lockedView.style.display = 'block';
+        }
+
+        // Safety Timeout (Fail-safe)
+        const authTimeout = setTimeout(() => {
+            console.warn("Auth listener timed out. Checking currentUser manually...");
+            const user = auth.currentUser;
+            if (user) {
+                handleLoggedIn(user);
+            } else {
+                handleGuest();
+            }
+        }, 1500); // 1.5s timeout
+
+        // Main Listener
+        auth.onAuthStateChanged((user) => {
+            clearTimeout(authTimeout); // Cancel timeout
+            if (user) {
+                handleLoggedIn(user);
+            } else {
+                handleGuest();
+            }
+        });
+
+    </script>
+
+    <script src="../js/translations.js"></script>
+    <script src="../js/main.js?v=2"></script>
+    <script src="../js/user_dashboard.js"></script>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.user-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+    </script>
+</body>
+
+</html>

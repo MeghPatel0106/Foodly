@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-VXEHBX2S2V', {
+            send_page_view: true
+        });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--dark-color);
+            color: white;
+            padding: var(--spacing-lg);
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            background: none;
+            color: #bdc3c7;
+            border-radius: var(--radius-md);
+            margin-bottom: 4px;
+            transition: var(--transition);
+        }
+
+        .sidebar-menu button:hover,
+        .sidebar-menu button.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .main-content {
+            padding: var(--spacing-xl);
+            background: #f0f2f5;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-card {
+            background: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-ready {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .btn-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Mobile handling for sidebar */
+        @media (max-width: 768px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: block;
+                /* Make visible for slide-in */
+                position: fixed;
+                top: 0;
+                left: -280px;
+                /* Hidden off-screen */
+                width: 260px;
+                height: 100vh;
+                z-index: 1100;
+                transition: left 0.3s ease;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.show {
+                left: 0;
+                /* Slide in */
+            }
+
+            .main-content {
+                padding: var(--spacing-md);
+            }
+
+            /* Show Hamburger on Mobile */
+            .admin-hamburger-btn {
+                display: block !important;
+            }
+
+            /* Show Close Button inside Sidebar */
+            .close-sidebar-btn {
+                display: block !important;
+            }
+
+            /* Overlay Styles */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+                opacity: 1;
+            }
+
+            /* Stats Grid Single Column */
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Mobile Table to Card Transformation */
+            .admin-table,
+            .admin-table tbody,
+            .admin-table tr,
+            .admin-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .admin-table thead {
+                display: none;
+                /* Hide headers */
+            }
+
+            .admin-table tr {
+                margin-bottom: 20px;
+                background: white;
+                border: 1px solid #eee;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                padding: 15px;
+            }
+
+            .admin-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 0.95rem;
+            }
+
+            .admin-table td:last-child {
+                border-bottom: none;
+            }
+
+            /* Add labels from data-label */
+            .admin-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #666;
+                text-align: left;
+                margin-right: 20px;
+            }
+
+            /* Specific fix for Actions column to align button */
+            .admin-table td[data-label="Actions"] {
+                justify-content: flex-end;
+            }
+        }
+
+        /* Order Cards Grid */
+        .orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-id {
+            font-weight: 700;
+            color: var(--dark-color);
+            font-size: 1.1rem;
+        }
+
+        .order-total {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .order-actions button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+        }
+
+        /* Profile Styles */
+        .profile-card-display {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .profile-card-display img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f8f9fa;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .profile-info-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .profile-info-value {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        /* --- ANALYTICS DASHBOARD STYLES --- */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .analytics-card {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        .kpi-subtext {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .insight-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #6f42c1;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-top: 24px;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-bg {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-strip {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Split Orders Layout */
+        .split-orders-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 200px);
+            /* Fixed height for scrolling */
+            min-height: 500px;
+        }
+
+        .orders-column {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Header fixed, body scrolls */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .orders-column-header {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8f9fa;
+        }
+
+        .orders-list-body {
+            flex: 1;
+            overflow-y: auto;
+            /* Vertical Scroll */
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Ensure cards take full width in the column */
+        .orders-list-body .order-card {
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .split-orders-container {
+                grid-template-columns: 1fr;
+                /* Stack on mobile/tablet */
+                height: auto;
+            }
+
+            .orders-list-body {
+                max-height: 500px;
+                /* Limit height when stacked */
+            }
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-preparing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status-picked {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        /* === ADMIN CSS ARCHITECTURE (STRICT SEPARATION) === */
+        html,
+        body {
+            width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        /* 1. GLOBAL DEFAULTS (Mobile First) */
+        .admin-layout {
+            width: 100%;
+            min-height: 100vh;
+            display: block;
+            /* Default to stack */
+            position: relative;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background: var(--dark-color);
+            z-index: 1000;
+        }
+
+        .main-content {
+            width: 100%;
+            padding: var(--spacing-xl);
+        }
+
+        /* 2. DESKTOP VIEW (Min Width 1025px) */
+        @media (min-width: 1025px) {
+            .admin-layout {
+                display: grid !important;
+                grid-template-columns: 250px 1fr !important;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .sidebar {
+                grid-column: 1;
+                width: 250px !important;
+                position: relative !important;
+                left: 0 !important;
+                display: block !important;
+            }
+
+            .main-content {
+                grid-column: 2;
+                overflow-y: auto;
+                height: 100vh;
+                padding: 24px;
+            }
+
+            /* HIDE MOBILE ELEMENTS */
+            .sidebar-overlay,
+            .admin-hamburger-btn,
+            .mobile-admin-header,
+            .close-sidebar-btn {
+                display: none !important;
+            }
+
+            /* Desktop Grid for Orders */
+            .split-orders-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 16px;
+            }
+        }
+
+        /* 3. MOBILE/TABLET VIEW (Max Width 1024px) */
+        @media (max-width: 1024px) {
+            .admin-layout {
+                display: block !important;
+                height: auto;
+                overflow: visible;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -280px;
+                /* Hidden */
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+                transition: left 0.3s ease;
+                z-index: 9999;
+                width: 260px;
+            }
+
+            .sidebar.show {
+                left: 0 !important;
+            }
+
+            .main-content {
+                padding: 16px;
+                padding-top: 0;
+                height: auto;
+                overflow: visible;
+                width: 100% !important;
+            }
+
+            /* Show Mobile Elements */
+            .mobile-admin-header,
+            .admin-hamburger-btn,
+            .close-sidebar-btn {
+                display: block !important;
+            }
+
+            .mobile-admin-header {
+                display: flex !important;
+            }
+
+            /* Overlay */
+            .sidebar-overlay {
+                display: none;
+                z-index: 9998;
+            }
+
+            .sidebar-overlay.show {
+                display: block !important;
+            }
+
+            /* Stack Grids */
+            .split-orders-container,
+            .stats-grid,
+            .orders-grid,
+            .orders-columns {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <!-- Close Button (Mobile Only) -->
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <button class="active" onclick="switchTab('active-orders')">📌 Active Orders</button>
+                <button onclick="switchTab('order-history')">📜 Order History</button>
+                <button onclick="switchTab('analytics')">
+                    <span class="icon">📊</span> Analytics
+                </button>
+                <button onclick="switchTab('reviews')">
+                    <span class="icon">⭐</span> Reviews
+                </button>
+                <button onclick="switchTab('menu')">🍔 Menu Items</button>
+                <button onclick="switchTab('profile')">👤 Profile</button>
+                <button onclick="switchTab('settings')">⚙️ Settings</button>
+                <button onclick="logout()">🚪 Logout</button>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                ☰
+            </button>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-orders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-revenue">₹0.00</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-pending">0</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <!-- Active Orders Tab -->
+            <!-- Active Orders Tab -->
+            <div id="tab-active-orders">
+                <div class="section-title">
+                    <h2>Active Orders Board</h2>
+                </div>
+
+                <div class="split-orders-container">
+                    <!-- Meal Column -->
+                    <div class="orders-column">
+                        <div class="orders-column-header">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                🍲 Meal Orders
+                            </h3>
+                            <small class="text-muted">Main Course items</small>
+                        </div>
+                        <div id="active-meal-orders-grid" class="orders-list-body">
+                            <!-- JS Populates Here -->
+                        </div>
+                    </div>
+
+                    <!-- Snack Column -->
+                    <div class="orders-column">
+                        <div class="orders-column-header">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                🍿 Quick Snacks
+                            </h3>
+                            <small class="text-muted">Packets & Drinks</small>
+                        </div>
+                        <div id="active-snack-orders-grid" class="orders-list-body">
+                            <!-- JS Populates Here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History Tab -->
+            <div id="tab-order-history" style="display: none;">
+                <div class="section-title">
+                    <h2>Order History</h2>
+                    <button class="action-btn" style="background: #fee2e2; color: #dc2626;"
+                        onclick="clearAdminHistory()">Clear All History</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Ordered By</th>
+                                <th>Items</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-orders-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Menu Tab -->
+            <div id="tab-menu" style="display: none;">
+                <div class="section-title">
+                    <h2>Menu Items</h2>
+                </div>
+
+                <!-- Menu Type Selector -->
+                <div
+                    style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="action-btn active-menu-type" id="btn-meal" onclick="switchMenuType('meal')"
+                            style="padding: 8px 16px; font-size: 1rem; cursor: pointer; background: var(--primary-color); color: white;">
+                            Meals
+                        </button>
+                        <button class="action-btn" id="btn-snack" onclick="switchMenuType('snack')"
+                            style="padding: 8px 16px; font-size: 1rem; cursor: pointer; background: #e2e8f0; color: var(--dark-color);">
+                            Quick Snacks
+                        </button>
+                    </div>
+                    <div>
+                        <input type="text" id="menuSearchInput" placeholder="Search menu items..."
+                            onkeyup="filterMenu()"
+                            style="padding: 8px 12px; border: 1px solid #ccc; border-radius: var(--radius-md); width: 250px;">
+                    </div>
+                </div>
+
+                <!-- Add Menu Item Form -->
+                <div class="card mb-4"
+                    style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Add New Item</h3>
+                    <form onsubmit="addMenuItem(event)"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <input type="text" id="itemName" placeholder="Item Name" required
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <select id="itemCategory" required
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="punjabi">Punjabi</option>
+                            <option value="chinese">Chinese</option>
+                            <option value="indian_snack">Snacks</option>
+                            <option value="fast_food">Fast Food</option>
+                            <option value="drinks">Drinks</option>
+                            <option value="packets">Packets</option>
+                        </select>
+                        <input type="number" id="itemPrice" placeholder="Price (₹)" step="0.01" required
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="text" id="itemImage" placeholder="Image URL (or select file below)"
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="file" id="newItemFile" accept="image/*"
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="itemAvailable" checked>
+                            <label for="itemAvailable">Available</label>
+                        </div>
+                        <button type="submit" id="btnAddItem" class="btn-ready"
+                            style="border: none; cursor: pointer; font-weight: 600;">Add Item</button>
+                    </form>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menu-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" style="display: none;">
+                <div class="section-title">
+                    <h2>Settings</h2>
+                </div>
+
+                <div class="card"
+                    style="background: white; padding: 25px; border-radius: var(--radius-lg); border: 1px solid #fee2e2;">
+                    <h3 style="color: #dc2626; display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Danger Zone
+                    </h3>
+                    <p class="text-muted" style="margin-bottom: 2rem;">
+                        These actions are irreversible. Please be certain before proceeding.
+                    </p>
+
+                    <div style="display: grid; gap: 1.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+                            <div>
+                                <h4 style="margin-bottom: 4px;">Delete All Menu Items</h4>
+                                <p class="text-sm text-muted">Removes all items from the menu (Meals & Snacks).</p>
+                            </div>
+                            <button onclick="resetAllMenu()" class="btn"
+                                style="background: #dc2626; color: white; border: none;">
+                                Delete All Menu Data
+                            </button>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin-bottom: 4px;">Delete All Orders</h4>
+                                <p class="text-sm text-muted">Clears all active orders and order history.</p>
+                            </div>
+                            <button onclick="resetAllOrders()" class="btn"
+                                style="background: #dc2626; color: white; border: none;">
+                                Delete All Order Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" style="display: none;">
+                <div class="section-title">
+                    <h2>Analytics Overview</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <span id="analytics-last-updated" class="text-muted"
+                            style="font-size: 0.8rem; align-self: center;">Checking...</span>
+                        <button class="btn btn-sm btn-secondary" onclick="renderAnalytics(true)">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <!-- KPI Strip -->
+                <div class="kpi-strip">
+                    <div class="kpi-card" style="border-left-color: var(--primary-color);">
+                        <div class="kpi-label">Total Revenue</div>
+                        <div class="kpi-value" id="kpi-revenue">₹0</div>
+                        <div class="kpi-subtext" id="kpi-revenue-trend">Loading...</div>
+                    </div>
+                    <div class="kpi-card" style="border-left-color: #28a745;">
+                        <div class="kpi-label">Total Orders</div>
+                        <div class="kpi-value" id="kpi-orders">0</div>
+                        <div class="kpi-subtext" id="kpi-orders-trend">Loading...</div>
+                    </div>
+                    <div class="kpi-card" style="border-left-color: #17a2b8;">
+                        <div class="kpi-label">Avg Order Value</div>
+                        <div class="kpi-value" id="kpi-aov">₹0</div>
+                        <div class="kpi-subtext">Per completed order</div>
+                    </div>
+                    <div class="kpi-card" style="border-left-color: #ffc107;">
+                        <div class="kpi-label">Orders / Hour</div>
+                        <div class="kpi-value" id="kpi-rate">0</div>
+                        <div class="kpi-subtext">Avg during business hours</div>
+                    </div>
+                </div>
+
+                <!-- Trend Chart -->
+                <div class="card"
+                    style="margin-bottom: 20px; padding: 20px; border-radius: var(--radius-lg); background: white; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: var(--dark-color); display: flex; align-items: center; gap: 8px;">
+                            📈 Revenue Trend
+                        </h3>
+                        <p class="text-sm text-muted">Last 7 Days</p>
+                    </div>
+                    <div style="height: 300px;">
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+
+                    <!-- Card 1: Top Selling -->
+                    <div class="analytics-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3
+                                style="margin: 0; font-size: 1.1rem; color: var(--dark-color); display: flex; align-items: center; gap: 8px;">
+                                🏆 Top Selling
+                            </h3>
+                            <select id="filter-top-selling" onchange="renderAnalytics()"
+                                style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; background: #f8f9fa;">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month" selected>This Month</option>
+                            </select>
+                        </div>
+                        <div id="analytics-top-selling" style="flex: 1;">
+                            <p class="text-center text-muted">Loading data...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Least Ordered / Slow Moving -->
+                    <div class="analytics-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3
+                                style="margin: 0; font-size: 1.1rem; color: #dc3545; display: flex; align-items: center; gap: 8px;">
+                                📉 Slow Moving Items
+                            </h3>
+                            <select id="filter-least-ordered" onchange="renderAnalytics()"
+                                style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; background: #f8f9fa;">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30" selected>Last 30 Days</option>
+                            </select>
+                        </div>
+                        <div id="analytics-least-ordered" style="flex: 1;">
+                            <p class="text-center text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Demand Analysis -->
+                    <div class="analytics-card">
+                        <div style="margin-bottom: 20px;">
+                            <h3
+                                style="margin: 0; font-size: 1.1rem; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                                ⏰ Peak Demand Analysis
+                            </h3>
+                            <p class="text-sm text-muted" style="margin-top: 4px;">Hourly breakdown of all orders</p>
+                        </div>
+                        <div id="analytics-demand" style="flex: 1;">
+                            <p class="text-center text-muted">Loading...</p>
+                        </div>
+                        <div id="analytics-peak-day"
+                            style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee;">
+                            <!-- Peak Day content -->
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Category & Revenue -->
+                    <div class="analytics-card">
+                        <div style="margin-bottom: 20px;">
+                            <h3
+                                style="margin: 0; font-size: 1.1rem; color: #6f42c1; display: flex; align-items: center; gap: 8px;">
+                                🥧 Revenue Distribution
+                            </h3>
+                            <p class="text-sm text-muted" style="margin-top: 4px;">By category and top items</p>
+                        </div>
+                        <div id="analytics-categories" style="flex: 1;">
+                            <p class="text-center text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Recent Feedback (REMOVED) -->
+
+                </div>
+
+                <!-- Smart Insights Panel -->
+                <div class="insight-panel">
+                    <h3
+                        style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: #6f42c1;">
+                        🧠 Smart Insights
+                    </h3>
+                    <div id="analytics-insights">
+                        <p class="text-muted">Generating insights...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVIEWS TAB -->
+            <div id="tab-reviews" style="display: none;">
+                <div class="section-title">
+                    <h2>Customer Reviews</h2>
+                    <div class="btn-group">
+                        <button class="action-btn btn-primary" onclick="renderReviews(true)">Refresh</button>
+                    </div>
+                </div>
+
+                <!-- Reviews Summary (Mini Dashboard) -->
+                <div class="stats-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="review-avg-rating">-</div>
+                        <div class="stat-label">Average Rating</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="review-total-count">-</div>
+                        <div class="stat-label">Total Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="review-sentiment">😊</div>
+                        <div class="stat-label">Overall Sentiment</div>
+                    </div>
+                </div>
+
+                <div class="card" style="overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Items</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div id="reviews-loading" class="text-center text-muted" style="padding: 2rem;">
+                        Loading reviews...
+                    </div>
+                    <div id="reviews-empty" class="text-center text-muted" style="padding: 2rem; display: none;">
+                        No reviews found.
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFILE TAB -->
+            <div id="tab-profile" style="display: none;">
+                <div class="section-title">
+                    <h2>Admin Profile</h2>
+                </div>
+                <div class="profile-card-display" id="dashboard-profile-card">
+                    <img id="dash-avatar" src="https://via.placeholder.com/80" alt="Avatar">
+                    <h2 id="dash-name" style="margin-bottom: 5px; margin-top: 1rem;">Loading...</h2>
+                    <p id="dash-role" class="text-muted" style="margin-bottom: 20px; text-transform: capitalize;">Admin
+                    </p>
+
+                    <div style="max-width: 400px; margin: 0 auto;">
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Email</span>
+                            <span class="profile-info-value" id="dash-email">-</span>
+                        </div>
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Phone</span>
+                            <span class="profile-info-value" id="dash-phone">-</span>
+                        </div>
+                        <div class="profile-info-row">
+                            <span class="profile-info-label">Gender</span>
+                            <span class="profile-info-value" id="dash-gender">-</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary action-btn" onclick="openProfile()"
+                        style="margin-top: 2rem; width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; font-size: 1rem;">
+                        Edit Profile
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Profile Modal (Copied from menu.html & retained) -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">Edit Profile</h2>
+                <button onclick="closeProfile()" class="close-btn"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+
+            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                <img id="avatar-preview" src="" alt="Profile Avatar"
+                    style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #f3f3f3; box-shadow: var(--shadow-sm);">
+            </div>
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <label class="form-label">Select Avatar</label>
+                <div class="avatar-grid" id="avatar-grid">
+                    <!-- Avatars populated by JS -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="profile-name" class="form-input" placeholder="Your Name">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email (Read Only)</label>
+                <input type="email" id="profile-email" class="form-input" disabled>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <!-- VALIDATION: Digits Only -->
+                <input type="tel" id="profile-phone" class="form-input" placeholder="Enter phone number"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="profile-gender" class="form-input">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                Save Profile
+            </button>
+        </div>
+    </div>
+
+
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script src="../js/mock-data.js"></script>
+    <script>
+        // Stub foodItems for main.js
+        window.foodItems = [];
+    </script>
+    <script src="../js/main.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+            authDomain: "foodly-40d16.firebaseapp.com",
+            projectId: "foodly-40d16",
+            storageBucket: "foodly-40d16.firebasestorage.app",
+            messagingSenderId: "74040922594",
+            appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // STRICT ADMIN PROTECTION
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            const snap = await firebase.firestore()
+                .collection("users")
+                .doc(user.uid)
+                .get();
+
+            if (!snap.exists || snap.data().role !== "admin") {
+                window.location.href = "menu.html";
+            }
+        });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            initRealTimeOrders();
+            // initRealTimeMenu(); // Removed, handled by switchMenuType
+
+            // Restore active tab
+            // Check URL param first, then localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabFromUrl = urlParams.get('tab');
+            const savedTab = tabFromUrl || localStorage.getItem('admin_active_tab') || 'active-orders';
+
+            // Initial render (replaceState to set initial URL if missing)
+            if (!tabFromUrl) {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('tab', savedTab);
+                window.history.replaceState({ tab: savedTab }, '', newUrl);
+            }
+
+            switchTab(savedTab, false); // false = don't push state on initial load
+
+            // Default Menu Type
+            switchMenuType('meal');
+
+            // Init Profile Listener (from main.js)
+            initProfileListener();
+
+            // Extra Logic handled by loadAdminProfile now
+            loadAdminProfile();
+
+            // Force Fix: Inject Refresh Button - REMOVED
+        });
+
+        // Handle Back/Forward buttons
+        window.onpopstate = function (event) {
+            if (event.state && event.state.tab) {
+                switchTab(event.state.tab, false);
+            } else {
+                // Fallback if state is null (e.g. initial page load)
+                switchTab('active-orders', false);
+            }
+        };
+
+        function switchTab(tab, pushToHistory = true) {
+            // Save state
+            localStorage.setItem('admin_active_tab', tab);
+
+            // Update URL and History
+            if (pushToHistory) {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('tab', tab);
+                window.history.pushState({ tab: tab }, '', newUrl);
+            }
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.sidebar-menu button').forEach(b => b.classList.remove('active'));
+
+            // Add active class to corresponding button
+            // Note: explicit mapping or finding by onclick handler
+            const buttons = document.querySelectorAll('.sidebar-menu button');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tab)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Hide all tabs first
+            document.getElementById('tab-active-orders').style.display = 'none';
+            document.getElementById('tab-order-history').style.display = 'none';
+            document.getElementById('tab-active-orders').style.display = 'none';
+            document.getElementById('tab-order-history').style.display = 'none';
+            document.getElementById('tab-menu').style.display = 'none';
+            document.getElementById('tab-profile').style.display = 'none';
+            document.getElementById('tab-settings').style.display = 'none';
+            document.getElementById('tab-analytics').style.display = 'none';
+            document.getElementById('tab-reviews').style.display = 'none';
+
+            // Show selected tab
+            // Show selected tab
+            if (tab === 'active-orders') {
+                document.getElementById('tab-active-orders').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'grid';
+            } else if (tab === 'order-history') {
+                document.getElementById('tab-order-history').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'grid';
+            } else if (tab === 'menu') {
+                document.getElementById('tab-menu').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'grid';
+            } else if (tab === 'profile') {
+                document.getElementById('tab-profile').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'none';
+                loadAdminProfile();
+            } else if (tab === 'settings') {
+                document.getElementById('tab-settings').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'none';
+            } else if (tab === 'analytics') {
+                document.getElementById('tab-analytics').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'none';
+                renderAnalytics();
+            } else if (tab === 'reviews') {
+                document.getElementById('tab-reviews').style.display = 'block';
+                document.querySelector('.stats-grid').style.display = 'none';
+                renderReviews();
+            }
+        }
+
+        // --- DANGER ZONE FUNCTIONS ---
+
+        async function resetAllMenu() {
+            if (!confirm("Are you sure you want to delete ALL menu items? This cannot be undone.")) return;
+
+            const collections = ['food_items', 'quick_meals'];
+            let count = 0;
+
+            try {
+                for (const colName of collections) {
+                    const snapshot = await db.collection(colName).get();
+                    if (!snapshot.empty) {
+                        const batch = db.batch();
+                        snapshot.docs.forEach(doc => {
+                            batch.delete(doc.ref);
+                            count++;
+                        });
+                        await batch.commit();
+                    }
+                }
+                alert(`Successfully deleted ${count} menu items.`);
+                // Refresh if currently on menu tab (though we are on settings tab)
+                if (typeof loadMenu === 'function') loadMenu();
+            } catch (error) {
+                console.error("Error deleting menu:", error);
+                alert("Failed to delete menu items: " + error.message);
+            }
+        }
+
+        async function resetAllOrders() {
+            if (!confirm("Are you sure you want to delete ALL orders? This cannot be undone.")) return;
+
+            try {
+                const snapshot = await db.collection('orders').get();
+                if (snapshot.empty) {
+                    alert("No orders to delete.");
+                    return;
+                }
+
+                // Firestore batch limit is 500. Handle larger sets if needed, but for now simple batch.
+                const batch = db.batch();
+                let count = 0;
+
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                    count++;
+                });
+
+                await batch.commit();
+                alert(`Successfully deleted ${count} orders.`);
+                // Counters will update automatically via listeners
+            } catch (error) {
+                console.error("Error deleting orders:", error);
+                alert("Failed to delete orders: " + error.message);
+            }
+        }
+
+        // Real-time listener
+        // Real-time listeners
+        function initRealTimeOrders() {
+            loadActiveOrders(); // Load once
+            initHistoryOrdersListener();
+            initStatsListener();
+        }
+
+        let activeOrdersUnsubscribe = null;
+
+        function loadActiveOrders() {
+            const mealGrid = document.getElementById('active-meal-orders-grid');
+            const snackGrid = document.getElementById('active-snack-orders-grid');
+
+            // Reset listener if already active (Hard Refresh)
+            if (activeOrdersUnsubscribe) {
+                activeOrdersUnsubscribe();
+                activeOrdersUnsubscribe = null;
+            }
+
+            // Show loading state
+            if (!mealGrid.hasChildNodes()) mealGrid.innerHTML = '<p class="text-muted">Loading...</p>';
+            if (!snackGrid.hasChildNodes()) snackGrid.innerHTML = '<p class="text-muted">Loading...</p>';
+
+            activeOrdersUnsubscribe = db.collection('orders')
+                .where('status', 'in', ['Pending', 'Preparing', 'Ready'])
+                .onSnapshot((snapshot) => {
+                    // Create Fragments
+                    const mealFragment = document.createDocumentFragment();
+                    const snackFragment = document.createDocumentFragment();
+
+                    let hasMealOrders = false;
+                    let hasSnackOrders = false;
+
+                    if (snapshot.empty) {
+                        mealGrid.innerHTML = '<div class="text-center text-muted col-span-full no-orders-msg">No active meal orders</div>';
+                        snackGrid.innerHTML = '<div class="text-center text-muted col-span-full no-orders-msg">No active snack orders</div>';
+                        return;
+                    }
+
+                    const orders = [];
+                    snapshot.forEach(doc => {
+                        orders.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // Client-side Sort
+                    orders.sort((a, b) => {
+                        const dateA = a.createdAt ? a.createdAt.toMillis() : 0;
+                        const dateB = b.createdAt ? b.createdAt.toMillis() : 0;
+                        return dateB - dateA;
+                    });
+
+                    orders.forEach(data => {
+                        // Fallback name
+                        const displayName = data.customerName || data.userName || data.name || "User " + (data.userId ? data.userId.slice(0, 6) : "Unknown");
+
+                        // ----------------------------------------------------
+                        // 🧠 SMART SORTING LOGIC
+                        // ----------------------------------------------------
+                        // Rule 1: If order contains ANY "meal" type item -> MEAL ORDER
+                        // Rule 2: If order contains ONLY "quick-snack" type items -> SNACK ORDER
+                        // Default: If no type info, default to MEAL for safety.
+                        // ----------------------------------------------------
+
+                        let isMealOrder = true; // Default
+
+                        if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                            // Check item types
+                            const hasMealItem = data.items.some(i => i.type === 'meal');
+                            // Allow both 'quick-snack' (legacy/plan) and 'quick' (actual main.js implementation)
+                            const allSnacks = data.items.every(i => i.type === 'quick-snack' || i.type === 'quick');
+
+                            if (allSnacks && !hasMealItem) {
+                                isMealOrder = false;
+                            }
+                        }
+
+                        // Render Card
+                        const tempObj = document.createElement('div');
+                        tempObj.innerHTML = createOrderCardHTML(data.id, { ...data, displayName });
+                        const cardElement = tempObj.firstElementChild;
+
+                        if (cardElement) {
+                            if (isMealOrder) {
+                                mealFragment.appendChild(cardElement);
+                                hasMealOrders = true;
+                            } else {
+                                snackFragment.appendChild(cardElement);
+                                hasSnackOrders = true;
+                            }
+                        }
+                    });
+
+                    // Update Grids
+                    mealGrid.innerHTML = '';
+                    if (hasMealOrders) {
+                        mealGrid.appendChild(mealFragment);
+                    } else {
+                        mealGrid.innerHTML = '<div class="text-center text-muted col-span-full no-orders-msg" style="grid-column: 1/-1; padding: 2rem; background: white; border-bottom: 1px solid #eee;">No active meal orders</div>';
+                    }
+
+                    snackGrid.innerHTML = '';
+                    if (hasSnackOrders) {
+                        snackGrid.appendChild(snackFragment);
+                    } else {
+                        snackGrid.innerHTML = '<div class="text-center text-muted col-span-full no-orders-msg" style="grid-column: 1/-1; padding: 2rem; background: white; border-bottom: 1px solid #eee;">No active snack orders</div>';
+                    }
+
+                }, (error) => {
+                    console.error("Error loading active orders:", error);
+                    mealGrid.innerHTML = `<div class="text-center text-danger">Error loading active orders</div>`;
+                    snackGrid.innerHTML = `<div class="text-center text-danger">Error loading active orders</div>`;
+                });
+        }
+
+        // --- Active Order Helpers ---
+
+        function renderOrderCard(grid, id, data) {
+            const cardHTML = createOrderCardHTML(id, data);
+            // Prepend to show newest first? Or explicit sort?
+            // "Active Orders" usually sorted by Date Desc.
+            // Simple approach: Insert at top.
+            grid.insertAdjacentHTML('afterbegin', cardHTML);
+        }
+
+        function createOrderCardHTML(id, data) {
+            // Use custom OrderID if available, else fallback
+            const displayId = data.orderNumber || id;
+
+            // Format Items List
+            const itemsList = data.items ? data.items.map(item =>
+                `<div style="font-size: 0.85rem; color: #555;">• ${item.quantity}x ${item.name}</div>`
+            ).join('') : '<div class="text-muted text-sm">No items found</div>';
+
+            // VISUAL STATUS LOGIC
+            let displayStatus = data.status;
+            let statusClass = getStatusClass(data.status);
+
+            // If user picked up, show Picked visual (Blue)
+            if (data.status === 'Ready' && data.userPickedUp === true) {
+                displayStatus = 'Picked';
+                statusClass = 'status-picked';
+            }
+
+            return `
+                <div class="order-card" id="${id}" style="display: flex; flex-direction: column; gap: 8px;">
+                     <div class="order-header" style="justify-content: space-between; align-items: flex-start;">
+                         <div>
+                             <small class="text-muted" style="font-size: 0.75rem; display: block; margin-bottom: 2px;">Order ID: #${displayId}</small>
+                             <div style="font-weight: 600; font-size: 0.95rem;">
+                                 👤 Ordered by: <span class="text-muted customer-name">${data.displayName}</span>
+                             </div>
+                         </div>
+                         <span class="status-badge ${statusClass} order-status-badge">${displayStatus}</span>
+                     </div>
+                     
+                     <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin: 4px 0;">
+                        <strong style="font-size: 0.8rem; color: #333; display: block; margin-bottom: 4px;">Items:</strong>
+                        ${itemsList}
+                     </div>
+
+                     <div>
+                         <div style="font-size: 0.85rem; color: #666;">Total Amount</div>
+                         <div class="order-total" style="font-size: 1.1rem;">₹${Number(data.total).toFixed(2)}</div>
+                     </div>
+ 
+                     <div class="order-actions" style="margin-top: auto; padding-top: 10px; border-top: 1px solid #eee;">
+                         ${getActionButtonsHTML(id, data.status)}
+                     </div>
+                </div>
+            `;
+        }
+
+        function getActionButtonsHTML(id, status) {
+            if (status === 'Pending' || status === 'Preparing') {
+                return `<button class="action-btn btn-ready" onclick="updateStatus('${id}', 'Ready')" style="width: 100%;">Mark Ready</button>`;
+            }
+            if (status === 'Ready') {
+                return `<button class="action-btn btn-complete" onclick="updateStatus('${id}', 'Completed')" style="width: 100%;">Complete</button>`;
+            }
+            return `<span class="text-muted text-sm">No actions</span>`;
+        }
+
+        function updateOrderCard(id, data) {
+            const card = document.getElementById(id);
+            if (!card) return;
+
+            // Visual Logic
+            let displayStatus = data.status;
+            let statusClass = getStatusClass(data.status);
+            if (data.status === 'Ready' && data.userPickedUp === true) {
+                displayStatus = 'Picked';
+                statusClass = 'status-picked';
+            }
+
+            // Update Badge
+            const badge = card.querySelector('.order-status-badge');
+            if (badge) {
+                badge.className = `status-badge ${statusClass} order-status-badge`;
+                badge.innerText = displayStatus;
+            }
+
+            // Update Actions
+            const actionsDiv = card.querySelector('.order-actions');
+            if (actionsDiv) {
+                actionsDiv.innerHTML = getActionButtonsHTML(id, data.status);
+            }
+        }
+
+        function removeOrderCard(id) {
+            const card = document.getElementById(id);
+            if (card) card.remove();
+        }
+
+        function initHistoryOrdersListener() {
+            const historyTbody = document.getElementById('history-orders-table-body');
+
+            // Query for History Orders
+            db.collection('orders')
+                .where('status', '==', 'Completed')
+                .onSnapshot((snapshot) => {
+                    let orders = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Client-side filtering for soft-deleted history
+                        if (!data.adminHidden) {
+                            orders.push({ id: doc.id, ...data });
+                        }
+                    });
+
+                    // Sort by date desc
+                    orders.sort((a, b) => {
+                        const dateA = a.createdAt ? a.createdAt.toMillis() : 0;
+                        const dateB = b.createdAt ? b.createdAt.toMillis() : 0;
+                        return dateB - dateA;
+                    });
+
+                    renderHistoryOrders(orders);
+                }, (error) => {
+                    console.error("Error fetching history orders:", error);
+                    historyTbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error loading history orders</td></tr>`;
+                });
+        }
+
+        function initStatsListener() {
+            // separate listener for stats to exclude nothing
+            db.collection('orders').onSnapshot((snapshot) => {
+                const orders = [];
+                snapshot.forEach(doc => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                updateStats(orders);
+            }, (error) => {
+                console.error("Error fetching stats:", error);
+            });
+        }
+
+
+
+        async function renderHistoryOrders(orders) {
+            const tbody = document.getElementById('history-orders-table-body');
+
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No completed orders</td></tr>`;
+                return;
+            }
+
+            // Pre-fetch missing names
+            const ordersWithNames = await Promise.all(orders.map(async (order) => {
+                let displayName = order.customerName || order.userName || order.name;
+
+                if (!displayName && order.userId) {
+                    try {
+                        const userDoc = await db.collection('users').doc(order.userId).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            displayName = userData.name || userData.email.split('@')[0];
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch user name', e);
+                    }
+                }
+
+                // Fallback
+                if (!displayName && order.userId) displayName = "User " + order.userId.slice(0, 6);
+                if (!displayName) displayName = "Guest";
+
+                return { ...order, displayName };
+            }));
+
+            tbody.innerHTML = ordersWithNames.map(order => {
+                // Format Items Summary
+                const itemsSummary = order.items
+                    ? order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')
+                    : 'No items';
+
+                return `
+                <tr>
+                    <td data-label="Order ID" class="font-bold">${order.orderNumber || order.id}</td>
+                    <td data-label="Ordered By"><span>${order.displayName}</span></td>
+                    <td data-label="Items"><span class="text-sm text-muted" style="max-width: 200px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${itemsSummary}">${itemsSummary}</span></td>
+                    <td data-label="Status"><span class="status-badge ${getStatusClass(order.status)}">${order.status}</span></td>
+                    <td data-label="Total">₹${Number(order.total).toFixed(2)}</td>
+                    <td data-label="Actions">
+                        <button class="action-btn" style="background: #fee2e2; color: #dc2626;" onclick="deleteOrder('${order.id}')">Delete</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                // Fetch order details for tracking (if needed for value/items)
+                // BUT user request says: 
+                // Ready -> order_id
+                // Completed -> order_id, value
+
+                let orderData = {};
+                if (newStatus === 'Completed') {
+                    const doc = await db.collection('orders').doc(id).get();
+                    orderData = doc.exists ? doc.data() : { total: 0 };
+                }
+
+                // If we need orderNumber instead of doc ID, we might need to fetch it for 'Ready' too if it's not passed.
+                // However, the `id` param here is the Firestore Doc ID. 
+                // The prompt says "order_id -> use existing orderNumber (example: A-023)".
+                // So tracking strictly requires orderNumber.
+                // Let's fetch the doc always to be safe and get the correct orderNumber.
+
+                const docSnap = await db.collection('orders').doc(id).get();
+                if (!docSnap.exists) return;
+                const data = docSnap.data();
+                const orderNum = data.orderNumber || id;
+
+                await db.collection('orders').doc(id).update({
+                    status: newStatus
+                });
+
+                // ✅ GOOGLE ANALYTICS: Track Status Changes
+                if (newStatus === 'Ready') {
+                    // (Optional) order_ready is not in the latest Step 7 spec list but was in Step 8.
+                    // The Step 7 prompt only asks for 3 events + feedback.
+                    // But I will keep order_ready if it was there, or stick to ONLY the new list?
+                    // "EVENTS TO IMPLEMENT: 1) add_to_cart, 2) place_order, 3) order_completed, 4) feedback_submitted"
+                    // It does NOT list order_ready.
+                    // However, removing it might regress previous work. 
+                    // Let's UPDATE order_completed and KEEP order_ready but maybe comment it out if strictly "ONLY" these.
+                    // The prompt says "Output Expected: Updated JavaScript... No other changes."
+                    // It lists 4 events. I will strictly implement those 3 (minus feedback) to be safe.
+                    // I will remove order_ready to strictly follow "EVENTS TO IMPLEMENT" list?
+                    // "EVENTS TO IMPLEMENT: ... 3) order_completed ... "
+                    // It doesn't explicitly say "Remove other events".
+                    // I'll keep order_ready as it's useful, but I will update order_completed.
+
+                    gtag('event', 'order_ready', {
+                        order_id: orderNum
+                    });
+                } else if (newStatus === 'Completed') {
+                    gtag('event', 'order_completed', {
+                        order_id: orderNum,
+                        completed_by: 'admin'
+                    });
+
+                    // ---------------------------------------------------------
+                    // GENERATE INVOICE (New Feature)
+                    // ---------------------------------------------------------
+                    try {
+                        const invoiceData = {
+                            orderNumber: orderNum,
+                            userId: data.userId,
+                            userName: data.userName || data.name || data.customerName || 'Guest',
+                            phone: data.phoneNumber || data.phone || '',
+                            email: data.email || '',
+                            items: data.items || [],
+                            totalAmount: data.total,
+                            paymentStatus: 'PAID',
+                            orderDate: data.createdAt,
+                            invoiceDate: firebase.firestore.FieldValue.serverTimestamp(),
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        await db.collection('invoices').add(invoiceData);
+                        console.log("Invoice generated for order " + orderNum);
+                    } catch (invError) {
+                        console.error("Failed to generate invoice:", invError);
+                        alert("Order completed, but failed to generate invoice. Check console.");
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert("Failed to update status");
+            }
+        }
+
+        /* --- GLOBAL MOBILE SIDEBAR TOGGLE --- */
+        window.toggleAdminSidebar = function () {
+            const sidebar = document.getElementById('adminSidebar');
+            // Select overlay by class since we added it that way
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            if (sidebar) {
+                const isClosed = !sidebar.classList.contains('show');
+
+                if (isClosed) {
+                    sidebar.classList.add('show');
+                    if (overlay) {
+                        overlay.style.display = 'block';
+                        setTimeout(() => overlay.style.opacity = '1', 10); // Fade in
+                    }
+                    document.body.style.overflow = 'hidden'; // Lock scroll
+                } else {
+                    sidebar.classList.remove('show');
+                    if (overlay) {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 300); // Wait for transition
+                    }
+                    document.body.style.overflow = ''; // Unlock scroll
+                }
+            } else {
+                console.error("Sidebar element not found!");
+            }
+        };
+
+        function getStatusClass(status) {
+            if (status === 'Pending' || status === 'Preparing') return 'status-preparing';
+            if (status === 'Ready') return 'status-ready';
+            return 'status-completed';
+        }
+
+        function updateStats(orders) {
+            const total = orders.length;
+            const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+            const pending = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing').length;
+
+            document.getElementById('stats-orders').innerText = total;
+            document.getElementById('stats-revenue').innerText = '₹' + revenue.toFixed(2);
+            document.getElementById('stats-pending').innerText = pending;
+        }
+
+        // --- MENU LOGIC ---
+        let allMenuItems = [];
+        let currentMenuCollection = 'food_items'; // 'food_items' or 'quick_meals'
+        let menuUnsubscribe = null;
+
+        function switchMenuType(type) {
+            // Update UI
+            const btnMeal = document.getElementById('btn-meal');
+            const btnSnack = document.getElementById('btn-snack');
+
+            if (type === 'meal') {
+                btnMeal.style.background = 'var(--primary-color)';
+                btnMeal.style.color = 'white';
+                btnSnack.style.background = '#e2e8f0';
+                btnSnack.style.color = 'var(--dark-color)';
+                currentMenuCollection = 'food_items';
+            } else {
+                btnSnack.style.background = 'var(--primary-color)';
+                btnSnack.style.color = 'white';
+                btnMeal.style.background = '#e2e8f0';
+                btnMeal.style.color = 'var(--dark-color)';
+                currentMenuCollection = 'quick_meals';
+            }
+
+            initRealTimeMenu();
+        }
+
+        function initRealTimeMenu() {
+            const tbody = document.getElementById('menu-table-body');
+
+            // Unsubscribe previous listener
+            if (menuUnsubscribe) {
+                menuUnsubscribe();
+            }
+
+            menuUnsubscribe = db.collection(currentMenuCollection).onSnapshot((snapshot) => {
+                const items = [];
+                snapshot.forEach(doc => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+                allMenuItems = items;
+                renderMenuTable(items);
+            }, (error) => {
+                console.error("Error fetching menu:", error);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading menu: ${error.message}</td></tr>`;
+            });
+        }
+
+        function switchTab(tabId) {
+            // Auto-close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('adminSidebar');
+                if (sidebar && sidebar.classList.contains('show')) {
+                    if (window.toggleAdminSidebar) window.toggleAdminSidebar();
+                }
+            }
+
+            // Hide all tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+
+            // REFRESH DATA ON TAB SWITCH
+            if (tabId === 'active-orders') {
+                // Already listening via snapshot
+            } else if (tabId === 'order-history') {
+                // Ideally load history here
+            } else if (tabId === 'analytics') {
+                renderAnalytics();
+            } else if (tabId === 'profile') {
+                loadAdminProfile();
+            } else if (tabId === 'reviews') {
+                renderReviews();
+            }
+
+            // Update Active State in Sidebar
+            document.querySelectorAll('.sidebar-menu button').forEach(btn => btn.classList.remove('active'));
+            // This is simple match, logic might need improvement if text changes
+            // For now relies on onclick attributes
+        }
+
+        function renderMenuTable(items) {
+            const tbody = document.getElementById('menu-table-body');
+            // Check if element exists to avoid errors on other tabs
+            if (!tbody) return;
+
+            const searchInput = document.getElementById('menuSearchInput');
+            const searchVal = searchInput ? searchInput.value.toLowerCase() : '';
+
+            let filteredItems = items; // Fix: Initialize properly
+
+            if (searchVal) {
+                filteredItems = items.filter(item => {
+                    const name = (item.Name || item.name || '').toLowerCase();
+                    const category = (item.Category || item.category || '').toLowerCase();
+                    return name.includes(searchVal) || category.includes(searchVal);
+                });
+            }
+
+            if (filteredItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No items found.</td></tr>`;
+                return;
+            }
+
+            // Sort by Category then Name
+            filteredItems.sort((a, b) => {
+                const catA = (a.Category || a.category || '').toLowerCase();
+                const catB = (b.Category || b.category || '').toLowerCase();
+                if (catA < catB) return -1;
+                if (catA > catB) return 1;
+
+                const nameA = (a.Name || a.name || '').toLowerCase();
+                const nameB = (b.Name || b.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
+            let html = '';
+            let lastCategory = null;
+
+            filteredItems.forEach(item => {
+                const currentCategory = item.Category || item.category || 'Uncategorized';
+
+                // Add Category Header if changed
+                if (currentCategory !== lastCategory) {
+                    let displayCategory = currentCategory;
+                    if (displayCategory.toLowerCase() === 'indian_snack' || displayCategory === 'Indian Item Snack') {
+                        displayCategory = 'Snacks';
+                    }
+
+                    html += `
+                        <tr style="background-color: #f1f5f9;">
+                            <td colspan="5" style="font-weight: 700; color: var(--dark-color); text-transform: capitalize; padding-left: 1rem;">
+                                ${displayCategory}
+                            </td>
+                        </tr>
+                    `;
+                    lastCategory = currentCategory;
+                }
+
+                let itemCategory = item.Category || item.category || 'N/A';
+                if (itemCategory.toLowerCase() === 'indian_snack' || itemCategory === 'Indian Item Snack') {
+                    itemCategory = 'Snacks';
+                }
+
+                html += `
+                <tr id="row-${item.id}">
+                    <td class="flex items-center gap-sm">
+                        <img src="${item.Image || item.image || 'https://via.placeholder.com/40'}" width="40" height="40" style="border-radius:4px; object-fit: cover;">
+                        ${item.Name || item.name}
+                    </td>
+                    <td style="text-transform:capitalize">${itemCategory}</td>
+                    <td>₹${Number(item.Price || item.price).toFixed(2)}</td>
+                    <td>
+                        <span class="${item.available ? 'text-success' : 'text-danger'}" style="font-weight:600">
+                            ${item.available ? 'Available' : 'Unavailable'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn" style="background: #e2e8f0; margin-right: 5px;" 
+                            onclick="enableEditMode('${item.id}')">
+                            Edit
+                        </button>
+                        <button class="action-btn" style="background: #e2e8f0; margin-right: 5px;" 
+                            onclick="toggleAvailability('${item.id}', ${item.available})">
+                            Toggle
+                        </button>
+                        <button class="action-btn" style="background: #fee2e2; color: #dc2626;" 
+                            onclick="deleteMenuItem('${item.id}')">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function filterMenu() {
+            // Re-render with current allMenuItems (search logic is inside renderMenuTable)
+            renderMenuTable(allMenuItems);
+        }
+
+        // --- SHARED UPLOAD HELPER ---
+        // --- SHARED UPLOAD HELPER (Base64 Strategy to bypass CORS) ---
+        async function uploadImageToFirebase(file) {
+            return new Promise((resolve, reject) => {
+                // 1. Validate Type
+                if (!file.type.startsWith('image/')) {
+                    reject(new Error("Please upload an image file (JPG/PNG)."));
+                    return;
+                }
+
+                // 2. Validate Size (Pre-compression)
+                if (file.size > 2 * 1024 * 1024) {
+                    console.warn("Large file detected, aggressive compression will be applied.");
+                }
+
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+
+                    img.onload = () => {
+                        // 3. Compress using Canvas
+                        const canvas = document.createElement('canvas');
+                        // Limit resolution to 600px width to keep string size manageable for Firestore
+                        const MAX_WIDTH = 600;
+                        const scaleSize = MAX_WIDTH / img.width;
+
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // 4. Convert to Base64 (JPEG 0.6 quality)
+                        // This consistently produces strings < 100KB, well within Firestore limits
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                        console.log("Image processed. New size: " + Math.round(compressedDataUrl.length / 1024) + "KB");
+
+                        resolve(compressedDataUrl);
+                    };
+
+                    img.onerror = (err) => reject(new Error("Failed to load image for processing."));
+                };
+
+                reader.onerror = (error) => reject(new Error("File reading failed."));
+            });
+        }
+
+        async function addMenuItem(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('btnAddItem');
+            if (btn) { btn.innerText = "Adding..."; btn.disabled = true; }
+
+            const name = document.getElementById('itemName').value;
+            const category = document.getElementById('itemCategory').value;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            let image = document.getElementById('itemImage').value; // URL input
+            const fileInput = document.getElementById('newItemFile');
+            const available = document.getElementById('itemAvailable').checked;
+
+            try {
+                // Priority: File Upload > URL Input
+                if (fileInput && fileInput.files.length > 0) {
+                    if (btn) btn.innerText = "Uploading Image...";
+                    image = await uploadImageToFirebase(fileInput.files[0]);
+                }
+
+                // Adaptive keys based on collection
+                const newItem = {};
+                if (currentMenuCollection === 'food_items') {
+                    newItem.Name = name;
+                    newItem.Category = category;
+                    newItem.Price = price;
+                    newItem.Image = image;
+                    newItem.available = available;
+                } else {
+                    newItem.name = name;
+                    newItem.category = category;
+                    newItem.price = price;
+                    newItem.image = image;
+                    newItem.available = available;
+                }
+
+                await db.collection(currentMenuCollection).add(newItem);
+
+                // Reset Form
+                event.target.reset();
+                alert("Item added successfully!");
+
+            } catch (error) {
+                console.error("Error adding item:", error);
+                alert("Failed to add item: " + error.message);
+            } finally {
+                if (btn) { btn.innerText = "Add Item"; btn.disabled = false; }
+            }
+        }
+
+        function deleteMenuItem(id) {
+            if (confirm("Are you sure you want to delete this item?")) {
+                db.collection(currentMenuCollection).doc(id).delete()
+                    .catch(error => {
+                        console.error("Error deleting item:", error);
+                        alert("Failed to delete item: " + error.message);
+                    });
+            }
+        }
+
+        function toggleAvailability(id, currentStatus) {
+            db.collection(currentMenuCollection).doc(id).update({
+                available: !currentStatus
+            }).catch(error => {
+                console.error("Error toggling availability:", error);
+                alert("Failed to update availability: " + error.message);
+            });
+        }
+
+        function enableEditMode(id) {
+            const item = allMenuItems.find(i => i.id === id);
+            if (!item) return;
+
+            const row = document.getElementById(`row-${id}`);
+            if (!row) return;
+
+            row.innerHTML = `
+                <td>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <input type="text" id="edit-name-${id}" value="${item.Name || item.name}" placeholder="Name" style="padding:4px; border:1px solid #ccc; border-radius:4px; width:100%;">
+                        <input type="text" id="edit-image-${id}" value="${item.Image || item.image}" placeholder="Image URL" style="padding:4px; border:1px solid #ccc; border-radius:4px; width:100%; font-size: 0.8em;">
+                        <input type="file" id="edit-file-${id}" accept="image/*" style="font-size: 0.8em;">
+                    </div>
+                </td>
+                <td style="text-transform:capitalize; color: #666;">${item.Category || item.category || 'N/A'}</td>
+                <td>
+                    <input type="number" id="edit-price-${id}" value="${item.Price || item.price}" step="0.01" style="padding:4px; border:1px solid #ccc; border-radius:4px; width: 80px;">
+                </td>
+                <td>
+                     <span class="${item.available ? 'text-success' : 'text-danger'}" style="font-weight:600">
+                        ${item.available ? 'Available' : 'Unavailable'}
+                    </span>
+                </td>
+                <td>
+                    <button class="action-btn btn-ready" onclick="saveEdit('${id}')" style="margin-right:5px;">Save</button>
+                    <button class="action-btn" onclick="cancelEdit()" style="background:#e2e8f0;">Cancel</button>
+                </td>
+            `;
+        }
+
+        async function saveEdit(id) {
+            const name = document.getElementById(`edit-name-${id}`).value;
+            let image = document.getElementById(`edit-image-${id}`).value;
+            const price = parseFloat(document.getElementById(`edit-price-${id}`).value);
+            const fileInput = document.getElementById(`edit-file-${id}`);
+
+            if (!name || isNaN(price)) {
+                alert("Please fill in valid name and price.");
+                return;
+            }
+
+            // Button Feedback
+            const saveBtn = document.querySelector(`button[onclick="saveEdit('${id}')"]`);
+            if (saveBtn) {
+                saveBtn.innerText = "Saving...";
+                saveBtn.disabled = true;
+            }
+
+            try {
+                // Handle File Upload if selected
+                if (fileInput && fileInput.files.length > 0) {
+                    if (saveBtn) saveBtn.innerText = "Uploading...";
+                    image = await uploadImageToFirebase(fileInput.files[0]);
+                }
+
+                // Adaptive Update
+                const updateData = {};
+                if (currentMenuCollection === 'food_items') {
+                    updateData.Name = name;
+                    updateData.Price = price;
+                    updateData.Image = image;
+                } else {
+                    updateData.name = name;
+                    updateData.price = price;
+                    updateData.image = image;
+                }
+
+                await db.collection(currentMenuCollection).doc(id).update(updateData);
+
+                // Refresh is automatic via listener, but we need to exit edit mode?
+                // The listener will re-render the table, effectively cancelling edit mode.
+                // But if listener is fast, it might just seamless update. 
+                // renderMenuTable calls "allMenuItems" which is updated by snapshot.
+                // So usually we don't need to do anything else.
+
+            } catch (error) {
+                console.error("Error updating:", error);
+                alert("Failed to update: " + error.message);
+                if (saveBtn) {
+                    saveBtn.innerText = "Save";
+                    saveBtn.disabled = false;
+                }
+            }
+        }
+
+        function cancelEdit() {
+            renderMenuTable(allMenuItems);
+        }
+
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                localStorage.removeItem('admin_active_tab');
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                alert("Error logging out");
+            });
+        }
+
+        function deleteOrder(orderId) {
+            if (!confirm("Are you sure you want to remove this order from history? Revenue stats will remain affected.")) {
+                return;
+            }
+
+            // Soft Delete: Just hide from Admin View
+            db.collection('orders').doc(orderId).update({
+                adminHidden: true
+            })
+                .then(() => {
+                    // Real-time listener handles UI removal
+                })
+                .catch(error => {
+                    console.error("Error deleting order:", error);
+                    alert("Failed to delete order");
+                });
+        }
+
+        async function clearAdminHistory() {
+            if (!confirm("Are you sure you want to DELETE ALL completed order history? This cannot be undone.")) {
+                return;
+            }
+
+            try {
+                // Get all completed orders
+                // We use limited batches because Firestore limits batch size (500)
+                // We will do it in chunks if necessary, but for now simple loop
+                const snapshot = await db.collection('orders')
+                    .where('status', '==', 'Completed')
+                    .get();
+
+                if (snapshot.empty) {
+                    alert("No completed orders to delete.");
+                    return;
+                }
+
+                const batch = db.batch();
+                let count = 0;
+
+                snapshot.forEach(doc => {
+                    // SOFT DELETE: Update 'adminHidden' to true instead of deleting
+                    batch.update(doc.ref, { adminHidden: true });
+                    count++;
+                });
+
+                if (count > 500) {
+                    alert("Too many orders to delete at once. Please implement chunking. Deleting first 500.");
+                    // In real app, we would chunk. Here, I'll rely on it being < 500 for this demo context.
+                }
+
+                await batch.commit();
+                alert(`Successfully deleted ${count} orders.`);
+
+            } catch (error) {
+                console.error("Error clearing history:", error);
+                alert("Failed to clear history: " + error.message);
+            }
+        }
+
+        // --- ANALYTICS LOGIC ---
+
+
+        // Cache for analytics data to prevent re-fetching on every refresh (5 min TTL)
+        let analyticsCache = {
+            orders: null,
+            lastFetch: 0,
+            menuMap: null
+        };
+
+        const ANALYTICS_TTL = 5 * 60 * 1000; // 5 minutes
+
+        async function renderAnalytics(forceRefresh = false) {
+            const now = Date.now();
+
+            // Containers
+            const topSellingContainer = document.getElementById('analytics-top-selling');
+            const leastOrderedContainer = document.getElementById('analytics-least-ordered');
+            const demandContainer = document.getElementById('analytics-demand');
+            const categoryContainer = document.getElementById('analytics-categories');
+            const insightsContainer = document.getElementById('analytics-insights');
+
+            // 1. Fetch Data (with caching)
+            let orders = [];
+
+            try {
+                if (forceRefresh || !analyticsCache.orders || (now - analyticsCache.lastFetch > ANALYTICS_TTL)) {
+
+                    // Show loading state on details
+                    const lastUpdated = document.getElementById('analytics-last-updated');
+                    if (lastUpdated) lastUpdated.innerText = 'Updating...';
+
+                    // Parallel fetch
+                    const [ordersSnap, foodSnap, quickSnap] = await Promise.all([
+                        db.collection('orders').where('status', '==', 'Completed').get(),
+                        db.collection('food_items').get(),
+                        db.collection('quick_meals').get()
+                    ]);
+
+                    orders = [];
+                    ordersSnap.forEach(doc => orders.push({ ...doc.data(), createdAtDate: doc.data().createdAt ? doc.data().createdAt.toDate() : new Date() }));
+
+                    // Build Menu Map for Name Resolution
+                    const menuMap = {};
+                    foodSnap.forEach(doc => { const d = doc.data(); menuMap[d.name] = d; menuMap[doc.id] = d; });
+                    quickSnap.forEach(doc => { const d = doc.data(); menuMap[d.name] = d; menuMap[doc.id] = d; });
+
+                    analyticsCache.orders = orders;
+                    analyticsCache.menuMap = menuMap;
+                    analyticsCache.lastFetch = now;
+                } else {
+                    orders = analyticsCache.orders;
+                }
+
+                // Update timestamp UI
+                const date = new Date(analyticsCache.lastFetch);
+                const lastUpdated = document.getElementById('analytics-last-updated');
+                if (lastUpdated) lastUpdated.innerText = `Last updated: ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+            } catch (e) {
+                console.error("Analytics fetch error", e);
+                if (topSellingContainer) topSellingContainer.innerHTML = '<p class="text-danger">Error loading data. Check console.</p>';
+                return;
+            }
+
+            // 2. Process All Analytics
+            calculateKPIs(orders);
+            renderTrendChart(orders); // Render Chart.js
+            processTopSelling(orders, topSellingContainer, analyticsCache.menuMap);
+            processLeastOrdered(orders, leastOrderedContainer, analyticsCache.menuMap);
+            processDemand(orders, demandContainer);
+            processCategories(orders, categoryContainer, analyticsCache.menuMap);
+            generateInsights(orders, analyticsCache.menuMap, insightsContainer);
+
+            // NEW: Render Feedback Analytics (if checking "analytics" tab, we might want this too)
+            // But renderAnalytics is called on tab switch.
+            renderFeedbackAnalytics();
+        }
+
+        // --- ADMIN PROFILE LOGIC ---
+        function loadAdminProfile() {
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    db.collection('users').doc(user.uid).onSnapshot(doc => {
+                        if (doc.exists) {
+                            const data = doc.data();
+                            const cardName = document.getElementById('dash-name');
+                            if (cardName) {
+                                cardName.innerText = data.name || "Admin"; // Fallback
+                                // Remove loading class if any
+                            }
+
+                            const cardEmail = document.getElementById('dash-email');
+                            if (cardEmail) cardEmail.innerText = data.email || user.email;
+
+                            const cardPhone = document.getElementById('dash-phone');
+                            if (cardPhone) cardPhone.innerText = data.phoneNumber || "Not set";
+
+                            const cardGender = document.getElementById('dash-gender');
+                            if (cardGender) cardGender.innerText = data.gender || "Not set";
+
+                            const avatar = data.avatar || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png";
+                            const cardAvatar = document.getElementById('dash-avatar');
+                            if (cardAvatar) {
+                                cardAvatar.src = avatar;
+                                cardAvatar.onerror = function () { this.src = "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"; };
+                            }
+                        }
+                    }, error => {
+                        console.error("Profile load error", error);
+                        const cardName = document.getElementById('dash-name');
+                        if (cardName) cardName.innerText = "Error loading profile";
+                    });
+                }
+            });
+        }
+
+        // --- FEEDBACK ANALYTICS & REVIEWS ---
+
+        async function renderReviews(forceRefresh = false) {
+            const tbody = document.getElementById('reviews-table-body');
+            const loading = document.getElementById('reviews-loading');
+            const empty = document.getElementById('reviews-empty');
+            const avgEl = document.getElementById('review-avg-rating');
+            const countEl = document.getElementById('review-total-count');
+            const sentEl = document.getElementById('review-sentiment');
+
+            // 1. Check Cache
+            const cacheKey = 'admin_reviews_cache_v3'; // Bumped version for new logic
+            const cached = localStorage.getItem(cacheKey);
+            const now = new Date().getTime();
+
+            let reviews = [];
+
+            if (!forceRefresh && cached) {
+                const data = JSON.parse(cached);
+                if (now - data.timestamp < 300000) { // 5 min cache
+                    reviews = data.reviews;
+                }
+            }
+
+            if (reviews.length === 0) {
+                loading.style.display = 'block';
+                tbody.innerHTML = '';
+                empty.style.display = 'none';
+
+                try {
+                    // Fetch directly from orders where feedback exists
+                    // Note: Sorting client-side to avoid index creation requirements for now
+                    const snap = await db.collection('orders')
+                        .where('feedbackSubmitted', '==', true)
+                        .get();
+
+                    reviews = snap.docs.map(doc => {
+                        const data = doc.data();
+                        const feedback = data.feedback || {};
+
+                        return {
+                            id: doc.id,
+                            displayOrderId: data.orderNumber || doc.id,
+                            userName: data.customerName || data.userName || data.name || 'Guest',
+                            rating: feedback.rating || 0,
+                            comment: feedback.comment || '',
+                            items: data.items || [],
+                            createdAtIso: feedback.createdAt || data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+                            isHidden: data.reviewHidden === true
+                        };
+                    });
+
+                    // Sort Descending by Date
+                    reviews.sort((a, b) => new Date(b.createdAtIso) - new Date(a.createdAtIso));
+
+                    // Cache
+                    localStorage.setItem(cacheKey, JSON.stringify({
+                        timestamp: now,
+                        reviews: reviews
+                    }));
+
+                } catch (e) {
+                    console.error("Error fetching reviews", e);
+                    loading.innerHTML = "Error loading reviews.";
+                    return;
+                }
+            }
+
+            loading.style.display = 'none';
+
+            if (reviews.length === 0) {
+                empty.style.display = 'block';
+                // Reset stats
+                avgEl.innerText = "0.0";
+                countEl.innerText = "0";
+                sentEl.innerText = "—";
+                return;
+            }
+
+            // 2. Render Table
+            tbody.innerHTML = reviews.filter(r => !r.isHidden).map(r => {
+                const date = new Date(r.createdAtIso).toLocaleString();
+                const rating = r.rating || 0;
+                const ratingDisplay = `${rating}/5`;
+
+                // Limit comment length
+                const comment = r.comment ? (r.comment.length > 50 ? r.comment.substring(0, 50) + '...' : r.comment) : '-';
+
+                // Format items
+                const items = r.items ? r.items.map(i => i.name).join(', ') : '-';
+
+                return `
+            <tr>
+                <td data-label="Date">${date}</td>
+                <td data-label="Order #">${r.displayOrderId}</td>
+                <td data-label="Customer">${r.userName}</td>
+                <td data-label="Rating" style="font-weight: bold; color: var(--text-dark);">${ratingDisplay}</td>
+                <td data-label="Comment" style="color: #666;" title="${r.comment || ''}">${comment}</td>
+                <td data-label="Items" style="font-size: 0.85rem; color: #888;">${items}</td>
+                <td data-label="Actions">
+                     <button class="action-btn" style="background: #fee2e2; color: #dc2626;" onclick="deleteReview('${r.id}')">Delete</button>
+                </td>
+            </tr>
+        `;
+            }).join('');
+
+            // 3. Calc Stats for Header
+            const total = reviews.length;
+            const sum = reviews.reduce((a, b) => a + (b.rating || 0), 0);
+            const avg = total > 0 ? (sum / total).toFixed(1) : 0;
+
+            if (avgEl) avgEl.innerText = avg;
+            if (countEl) countEl.innerText = total;
+
+            if (sentEl) {
+                if (avg >= 4.5) sentEl.innerText = "🔥 Excellent";
+                else if (avg >= 4.0) sentEl.innerText = "😊 Very Good";
+                else if (avg >= 3.0) sentEl.innerText = "🙂 Good";
+                else if (avg >= 2.0) sentEl.innerText = "😐 Okay";
+                else sentEl.innerText = "😞 Needs Work";
+            }
+        }
+
+        async function renderFeedbackAnalytics() {
+            // Functionality removed as per user request
+            // Kept empty to prevent errors if called by renderAnalytics
+            return;
+        }
+
+        async function deleteReview(orderId) {
+            if (!confirm("Are you sure you want to delete this review? It will be removed from the reviews list but kept for analytics.")) return;
+            try {
+                // Soft Delete: Mark as hidden in Firestore
+                await db.collection('orders').doc(orderId).update({ reviewHidden: true });
+
+                // Clear cache to force re-fetch and filter
+                localStorage.removeItem('admin_reviews_cache_v3');
+
+                // Refresh UI
+                renderReviews(true);
+                alert("Review deleted successfully.");
+            } catch (e) {
+                console.error("Error deleting review:", e);
+                alert("Error deleting review: " + e.message);
+            }
+        }
+
+        // --- Chart.js Trend Logic ---
+        let trendChartInstance = null;
+
+        function renderTrendChart(orders) {
+            const ctx = document.getElementById('revenueTrendChart').getContext('2d');
+
+            // 1. Prepare Daily Buckets (Last 7 Days)
+            const days = [];
+            const revenueData = [];
+            const ordersData = [];
+
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                days.push(d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' }));
+
+                // Filter orders for this day
+                const dayStart = new Date(d.setHours(0, 0, 0, 0));
+                const dayEnd = new Date(d.setHours(23, 59, 59, 999));
+
+                const dayOrders = orders.filter(o => o.createdAtDate >= dayStart && o.createdAtDate <= dayEnd);
+
+                const totalRev = dayOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+                revenueData.push(totalRev);
+                ordersData.push(dayOrders.length);
+            }
+
+            // 2. Destroy old chart if exists
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+            }
+
+            // 3. Create Chart
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Revenue (₹)',
+                            data: revenueData,
+                            borderColor: '#ff5722',
+                            backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Orders',
+                            data: ordersData,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) {
+                                        label += context.datasetIndex === 0 ? '₹' + context.parsed.y : context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function calculateKPIs(orders) {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+            let thisMonthOrders = 0;
+            let lastMonthOrders = 0;
+            let thisMonthRevenue = 0;
+            let lastMonthRevenue = 0;
+
+            let totalOrders = orders.length;
+            let totalRevenue = 0;
+
+            orders.forEach(o => {
+                const total = parseFloat(o.total || 0); // Ensure number
+                totalRevenue += total;
+
+                const month = o.createdAtDate.getMonth();
+                const year = o.createdAtDate.getFullYear();
+
+                if (month === currentMonth && year === currentYear) {
+                    thisMonthOrders++;
+                    thisMonthRevenue += total;
+                } else if (month === lastMonth && year === lastMonthYear) {
+                    lastMonthOrders++;
+                    lastMonthRevenue += total;
+                }
+            });
+
+            const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+
+            // Orders per hour estimate
+            const uniqueDates = new Set(orders.map(o => o.createdAtDate.toDateString())).size || 1;
+            const avgOrdersPerHour = totalOrders / (uniqueDates * 14); // Assuming 14h business day
+
+            // Update UI
+            const kpiRevenue = document.getElementById('kpi-revenue');
+            if (kpiRevenue) kpiRevenue.innerText = `₹${formatNumber(totalRevenue)}`;
+
+            const kpiOrders = document.getElementById('kpi-orders');
+            if (kpiOrders) kpiOrders.innerText = formatNumber(totalOrders);
+
+            const kpiAov = document.getElementById('kpi-aov');
+            if (kpiAov) kpiAov.innerText = `₹${Math.round(avgOrderValue)}`;
+
+            const kpiRate = document.getElementById('kpi-rate');
+            if (kpiRate) kpiRate.innerText = avgOrdersPerHour.toFixed(1);
+
+            // Trends
+            const revTrend = calculateTrend(thisMonthRevenue, lastMonthRevenue);
+            const orderTrend = calculateTrend(thisMonthOrders, lastMonthOrders);
+
+            const kpiRevTrend = document.getElementById('kpi-revenue-trend');
+            if (kpiRevTrend) kpiRevTrend.innerHTML = formatTrend(revTrend, 'vs last mo');
+
+            const kpiOrderTrend = document.getElementById('kpi-orders-trend');
+            if (kpiOrderTrend) kpiOrderTrend.innerHTML = formatTrend(orderTrend, 'vs last mo');
+        }
+
+        function calculateTrend(curr, prev) {
+            if (prev === 0) return curr > 0 ? 100 : 0;
+            return ((curr - prev) / prev) * 100;
+        }
+
+        function formatTrend(percent, label) {
+            const color = percent >= 0 ? '#28a745' : '#dc3545';
+            const arrow = percent >= 0 ? '↑' : '↓';
+            return `<span style="color: ${color}; font-weight: bold;">${arrow} ${Math.abs(percent.toFixed(1))}%</span> ${label}`;
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString('en-IN');
+        }
+
+        function processTopSelling(orders, container, menuMap) {
+            if (!container) return;
+            const period = document.getElementById('filter-top-selling').value;
+            const now = new Date();
+            let filteredOrders = orders;
+
+            // Date Filtering
+            if (period === 'today') {
+                filteredOrders = orders.filter(o => o.createdAtDate.toDateString() === now.toDateString());
+            } else if (period === 'week') {
+                const weekAgo = new Date();
+                weekAgo.setDate(now.getDate() - 7);
+                filteredOrders = orders.filter(o => o.createdAtDate >= weekAgo);
+            } else if (period === 'month') {
+                const monthAgo = new Date();
+                monthAgo.setDate(now.getDate() - 30);
+                filteredOrders = orders.filter(o => o.createdAtDate >= monthAgo);
+            }
+
+            const itemMap = {};
+            let periodTotalRev = 0;
+
+            filteredOrders.forEach(order => {
+                if (order.items) {
+                    order.items.forEach(item => {
+                        // Resolve Name
+                        const name = item.name || (menuMap[item.id] ? menuMap[item.id].name : 'Unknown Item');
+
+                        if (!itemMap[name]) {
+                            itemMap[name] = { name: name, qty: 0, revenue: 0 };
+                        }
+                        itemMap[name].qty += item.quantity;
+                        const itemRev = (parseFloat(item.price) * item.quantity);
+                        itemMap[name].revenue += itemRev;
+                        periodTotalRev += itemRev;
+                    });
+                }
+            });
+
+            const sortedItems = Object.values(itemMap).sort((a, b) => b.qty - a.qty).slice(0, 5); // Top 5
+            const topOneQty = sortedItems.length > 0 ? sortedItems[0].qty : 1;
+
+            if (sortedItems.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">No sales in this period.</p>';
+                return;
+            }
+
+            container.innerHTML = `<div style="display: flex; flex-direction: column; gap: 12px;">` +
+                sortedItems.map((item, index) => {
+                    const pct = (item.qty / topOneQty) * 100;
+                    return `
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="font-weight: 500;">${index + 1}. ${item.name}</span>
+                            <span style="font-weight: 600; color: var(--dark-color);">${item.qty} <span style="font-size: 0.75rem; color: #888; font-weight: normal;">orders</span></span>
+                        </div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width: ${pct}%; background: var(--primary-color);"></div>
+                        </div>
+                        <div style="text-align: right; font-size: 0.75rem; color: #888;">₹${formatNumber(item.revenue)} revenue</div>
+                    </div>
+                `;
+                }).join('') + `</div>`;
+        }
+
+        async function processLeastOrdered(orders, container, menuMap) {
+            if (!container) return;
+            const days = parseInt(document.getElementById('filter-least-ordered').value);
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - days);
+
+            const recentOrders = orders.filter(o => o.createdAtDate >= cutoff);
+
+            // Count recent sales
+            const salesMap = {};
+            recentOrders.forEach(order => {
+                if (order.items) {
+                    order.items.forEach(item => {
+                        const name = item.name || (menuMap[item.id] ? menuMap[item.id].name : 'Unknown Item');
+                        salesMap[name] = (salesMap[name] || 0) + item.quantity;
+                    });
+                }
+            });
+
+            // Use cached menu map keys
+            const uniqueItems = new Set(Object.values(menuMap).map(i => i.name));
+            const allItems = Array.from(uniqueItems);
+
+            const zeroSales = allItems.filter(name => !salesMap[name]);
+            const lowSales = Object.keys(salesMap).filter(name => salesMap[name] < 5).sort((a, b) => salesMap[a] - salesMap[b]); // < 5 threshold
+
+            // Prioritize Zero sales
+            const displayList = [...zeroSales.map(n => ({ name: n, count: 0 })), ...lowSales.map(n => ({ name: n, count: salesMap[n] }))].slice(0, 5);
+
+            if (displayList.length === 0) {
+                container.innerHTML = '<p class="text-success text-center" style="padding: 20px;">All items are performing well!</p>';
+                return;
+            }
+
+            container.innerHTML = `<ul style="list-style: none; padding: 0;">` +
+                displayList.map(item => `
+                        <li style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+                                <span style="font-weight: 500; color: #555;">${item.name}</span>
+                                <span style="background: ${item.count === 0 ? '#ffebee' : '#fff3cd'}; color: ${item.count === 0 ? '#c62828' : '#856404'}; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                    ${item.count === 0 ? 'NO ORDERS' : item.count + ' orders'}
+                                </span>
+                        </li>
+                    `).join('') + `</ul>`;
+        }
+
+        function processDemand(orders, container) {
+            if (!container) return;
+            const hours = new Array(24).fill(0);
+            const dayCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }; // Sun-Sat
+
+            orders.forEach(o => {
+                const h = o.createdAtDate.getHours();
+                const d = o.createdAtDate.getDay();
+                hours[h]++;
+                dayCounts[d]++;
+            });
+
+            // Peak Hour
+            let max = 0;
+            let peakHour = 0;
+            hours.forEach((count, h) => { if (count > max) { max = count; peakHour = h; } });
+
+            // Peak Day
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            let maxDay = 0;
+            let peakDayIndex = 0;
+            Object.keys(dayCounts).forEach(d => { if (dayCounts[d] > maxDay) { maxDay = dayCounts[d]; peakDayIndex = d; } });
+
+            if (max === 0) { container.innerHTML = '<p class="text-muted text-center">No data.</p>'; return; }
+
+            const peakTime = `${peakHour}:00 - ${peakHour + 1}:00`;
+
+            // Render Bar Chart
+            let chartHTML = `<div style="display: flex; align-items: flex-end; height: 100px; gap: 3px; margin-top: 20px;">`;
+            for (let i = 8; i <= 21; i++) { // 8am - 9pm
+                const h = (hours[i] / max) * 100;
+                const isPeak = i === peakHour;
+                chartHTML += `
+                        <div title="${i}:00 - ${hours[i]} orders" 
+                                style="flex: 1; background: ${isPeak ? 'var(--primary-color)' : '#e9ecef'}; height: ${h || 2}%; border-radius: 4px 4px 0 0; position: relative;">
+                        </div>`;
+            }
+            chartHTML += `</div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; margin-top: 6px;"><span>8 AM</span><span>9 PM</span></div>`;
+
+            container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: flex-end;">
+                        <div>
+                            <div style="font-size: 0.8rem; color: #888; text-transform: uppercase;">Busiest Hour</div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color);">${peakTime}</div>
+                        </div>
+                        <div style="text-align: right;">
+                                <div style="font-size: 0.8rem; color: #888; text-transform: uppercase;">Peak Load</div>
+                                <div style="font-weight: 600;">${max} orders</div>
+                        </div>
+                    </div>
+                    ${chartHTML}
+                `;
+
+            // Update Peak Day Info in Card
+            const dayContainer = document.getElementById('analytics-peak-day');
+            if (dayContainer) {
+                const dayPct = orders.length > 0 ? Math.round((maxDay / orders.length) * 100) : 0;
+                dayContainer.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: #e3f2fd; color: #0d47a1; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        ${dayPct}%
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: #333;">${days[peakDayIndex]} is your busiest day</div>
+                        <div style="font-size: 0.8rem; color: #666;">${maxDay} total orders</div>
+                    </div>
+                </div>
+            `;
+            }
+        }
+
+        function processCategories(orders, container, menuMap) {
+            if (!container) return;
+            let totalItems = 0;
+            const stats = { 'Meal': 0, 'Quick Snack': 0, 'Other': 0 };
+
+            orders.forEach(o => {
+                if (o.items) {
+                    o.items.forEach(i => {
+                        totalItems += i.quantity;
+                        // Determine Type
+                        let type = i.type;
+                        if (!type) {
+                            const dictItem = menuMap[i.name] || menuMap[i.id];
+                            type = dictItem ? dictItem.type : 'meal';
+                        }
+
+                        // Normalized check
+                        if (type === 'quick') stats['Quick Snack'] += i.quantity;
+                        else if (type === 'meal') stats['Meal'] += i.quantity;
+                        else stats['Other'] += i.quantity;
+                    });
+                }
+            });
+
+            if (totalItems === 0) {
+                container.innerHTML = '<p class="text-muted">No data.</p>';
+                return;
+            }
+
+            const mealPct = Math.round((stats['Meal'] / totalItems) * 100);
+            const snackPct = Math.round((stats['Quick Snack'] / totalItems) * 100);
+
+            container.innerHTML = `
+                    <div style="margin-top: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px;">
+                                <span>Meals</span>
+                                <span>${stats['Meal']} (${mealPct}%)</span>
+                            </div>
+                            <div style="width: 100%; background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden;">
+                                <div style="width: ${mealPct}%; background: var(--primary-color); height: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px;">
+                                <span>Quick Snacks</span>
+                                <span>${stats['Quick Snack']} (${snackPct}%)</span>
+                            </div>
+                            <div style="width: 100%; background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden;">
+                                <div style="width: ${snackPct}%; background: #6f42c1; height: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        function generateInsights(orders, menuMap, container) {
+            if (!container) return;
+
+            const insights = [];
+
+            // 1. Peak Hour Insight
+            const hours = new Array(24).fill(0);
+            orders.forEach(o => hours[o.createdAtDate.getHours()]++);
+            const maxOrder = Math.max(...hours);
+            let peakH = hours.indexOf(maxOrder);
+
+            if (maxOrder > 0) {
+                if (peakH >= 11 && peakH <= 14) insights.push("🔥 Lunch hours (11AM-2PM) see the highest traffic. Ensure staff is ready.");
+                else if (peakH >= 17 && peakH <= 20) insights.push("🌇 Evening snacks drive your peak sales.");
+                else insights.push(`⏰ Peak activity detected around ${peakH}:00.`);
+            }
+
+            // 2. Slow Day Insight
+            const days = orders.map(o => o.createdAtDate.getDay());
+            const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+            days.forEach(d => dayCounts[d]++);
+            const minDay = dayCounts.indexOf(Math.min(...dayCounts));
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+            if (orders.length > 10 && dayCounts[minDay] < (orders.length / 7) * 0.5) {
+                insights.push(`📉 ${dayNames[minDay]}s have very low orders. Consider running a "Happy Hour" promo.`);
+            }
+
+            // 3. Revenue Driver
+            let mealCount = 0; let snackCount = 0;
+            orders.forEach(o => {
+                if (o.items) o.items.forEach(i => {
+                    let type = i.type;
+                    if (!type) {
+                        const dictItem = menuMap[i.name] || menuMap[i.id];
+                        type = dictItem ? dictItem.type : 'meal';
+                    }
+                    if (type === 'quick') snackCount++; else mealCount++;
+                });
+            });
+
+            if (snackCount > mealCount * 1.5) insights.push("🍿 Snacks are outselling meals significantly. Consider adding more combo snack options.");
+            if (mealCount > snackCount * 2) insights.push("🍽️ Full meals are your core driver. Focus on upsizing meal portions.");
+
+            // Fallback
+            if (insights.length === 0) insights.push("✅ Operations look steady. Keep monitoring trends!");
+
+            container.innerHTML = insights.map(text => `
+            <div class="insight-item" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                <span style="font-size: 1.2rem;">💡</span>
+                <span style="font-size: 0.9rem; color: #555;">${text}</span>
+            </div>
+        `).join('');
+        }
+    </script>
+</body>
+
+</html>

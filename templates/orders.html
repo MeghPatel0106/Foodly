@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-VXEHBX2S2V', {
+            send_page_view: true
+        });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .order-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-md);
+            display: grid;
+            grid-template-columns: 200px 1fr 180px;
+            /* Left | Center | Right */
+            gap: 1.5rem;
+            align-items: start;
+            /* Top alignment */
+        }
+
+        /* Responsive: Stack on mobile */
+        @media (max-width: 768px) {
+            .order-card {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .card-right {
+                text-align: left !important;
+                flex-direction: row !important;
+                justify-content: flex-start !important;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* Zones */
+        .card-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .card-center {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow: hidden;
+            /* Contain long lists */
+        }
+
+        .card-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+            /* Right align */
+            text-align: right;
+            height: 100%;
+        }
+
+        /* Order Info Styles */
+        .order-id-text {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 1.05rem;
+        }
+
+        .order-date-text {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .order-items-list {
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .status-preparing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+
+        .order-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem;
+            color: var(--text-dark);
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Visual Polish: Active vs Past */
+        .order-card.ready {
+            border-left: 5px solid #28a745;
+            background: #fdfdfd;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.05);
+            /* Subtle lift */
+        }
+
+        .order-card.completed {
+            opacity: 0.85;
+            background: #fafafa;
+            border-color: #eee;
+        }
+
+        /* Feedback Modal Styles */
+        .rating-chips-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 1.5rem 0;
+            flex-wrap: nowrap;
+            /* Force single line */
+        }
+
+        .rating-chip {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.4;
+            transform: scale(0.9);
+            border-radius: 50%;
+            padding: 5px;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+            /* Prevent squishing beyond limit, though size adjust handles it */
+        }
+
+        .rating-chip:hover {
+            opacity: 0.7;
+            transform: scale(1.0);
+        }
+
+        .rating-chip.selected {
+            opacity: 1;
+            transform: scale(1.15);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .rating-chip img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Mobile Optimization for Rating Chips */
+        @media (max-width: 480px) {
+            .rating-chip img {
+                width: 35px;
+                height: 35px;
+            }
+
+            .rating-chips-container {
+                gap: 6px;
+                margin: 1rem 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="user-sidebar">
+        <div class="user-sidebar-header">
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">×</button>
+            <a href="menu.html" class="user-sidebar-logo">
+                <img src="../images/logo.png" alt="Logo" width="30">
+                Foodly
+            </a>
+        </div>
+
+        <ul class="user-sidebar-menu">
+            <li>
+                <a href="dashboard.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📊</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
+                    <span class="user-sidebar-icon">🍽️</span>
+                    Meal
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
+                    <span class="user-sidebar-icon">🍿</span>
+                    Quick Snacks
+                </a>
+            </li>
+            <li>
+                <a href="orders.html" class="user-sidebar-link active">
+                    <span class="user-sidebar-icon">📦</span>
+                    Order
+                </a>
+            </li>
+            <li>
+                <a href="invoices.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🧾</span>
+                    Invoice
+                </a>
+            </li>
+            <li>
+                <a href="cart.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🛒</span>
+                    Cart
+                    <span id="cart-count"
+                        style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="analytics.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📈</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">⚙️</span>
+                    Setting
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-sidebar-footer">
+
+            <button id="sidebar-auth-btn" class="btn btn-sm"
+                style="margin-top: 10px; padding-left: 0; color: var(--primary-color); display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;"
+                onclick="window.location.href='index.html'">
+                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                    <polyline points="10 17 15 12 10 7"></polyline>
+                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+                <span id="sidebar-auth-text">Login</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="user-main-content">
+        <!-- LOCKED VIEW (Hidden by default) -->
+        <div id="locked-view" style="display: none; text-align: center; padding-top: 100px;">
+            <div
+                style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                <h2 style="margin-bottom: 10px;">Login Required</h2>
+                <p class="text-muted" style="margin-bottom: 30px;">Please login or register to view your orders.</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <a href="index.html" class="btn btn-primary"
+                        style="text-decoration: none; padding: 10px 30px;">Login</a>
+                    <a href="index.html" class="btn btn-secondary"
+                        style="text-decoration: none; padding: 10px 30px;">Register</a>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="checkAuthManual()"
+                        style="background:none; border:none; text-decoration:underline; color:#666; cursor:pointer;">
+                        I am already logged in (Refresh)
+                    </button>
+                    <div id="auth-debug-msg" style="font-size: 0.8rem; color: #999; margin-top: 5px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function checkAuthManual() {
+                const msg = document.getElementById('auth-debug-msg');
+                msg.innerText = "Checking...";
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    msg.innerText = "User found! Reloading...";
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    msg.innerText = "No user detected. Please login again.";
+                }
+            }
+        </script>
+
+        <div id="main-app-content" style="display: block;">
+            <nav class="user-top-navbar">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                    ☰
+                </button>
+                <div class="navbar-content-end">
+                    <div class="notification-icon-wrapper" onclick="toggleNotifications()">
+                        <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                        <span class="badge" id="nav-notification-badge" style="display: none;"></span>
+                    </div>
+                    <div class="user-profile-widget" onclick="openProfile()"
+                        style="border: none; box-shadow: none; background: transparent;">
+                        <div class="user-info-text">
+                            <span class="user-name" id="top-nav-name">...</span>
+                            <span class="user-email" id="top-nav-email"
+                                style="font-size: 0.75rem; color: var(--text-light);"></span>
+                        </div>
+                        <img id="top-nav-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                            class="user-avatar-circle" alt="Profile">
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container animate-fade-in" style="margin-top: 2rem; max-width: 800px;">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 style="margin-bottom: 0;">My Orders</h1>
+                    <button onclick="clearUserHistory()" class="text-sm text-danger"
+                        style="background:none; border:none; cursor:pointer; color: #dc3545;">
+                        Clear History
+                    </button>
+                </div>
+
+                <div id="orders-list">
+                    <!-- Populated by JS -->
+                    <div class="text-center text-muted" style="margin-top: 4rem;">
+                        <p>No orders yet.</p>
+                        <a href="menu.html" style="color: var(--primary-color)">Start ordering</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Modal (Unified) -->
+            <div class="modal-overlay" id="profile-modal">
+                <div class="modal-card">
+                    <button class="close-btn" onclick="closeProfile()"
+                        style="position: absolute; top: 15px; right: 15px; font-size: 1.5rem; color: #999;">&times;</button>
+                    <h2 class="mb-4">My Profile</h2>
+
+                    <div class="text-center">
+                        <img id="avatar-preview" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                            style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-bottom: 10px;">
+                        <p class="text-muted text-sm mb-4">Select Avatar</p>
+
+                        <div class="avatar-grid" id="avatar-grid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="profile-name" class="form-input" placeholder="Enter your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email (Read Only)</label>
+                        <input type="email" id="profile-email" class="form-input" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mobile Number</label>
+                        <input type="tel" id="profile-phone" class="form-input" placeholder="Enter mobile number"
+                            maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select id="profile-gender" class="form-input">
+                            <option value="" disabled selected>Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveProfile()">Save
+                        Profile</button>
+                </div>
+            </div>
+
+            <!-- Feedback Modal -->
+            <div id="feedback-modal" class="modal-overlay">
+                <div class="modal-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="margin: 0;">Rate Order #<span id="fb-order-id"></span></h3>
+                        <button onclick="closeFeedbackModal()" class="close-btn"
+                            style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    </div>
+
+                    <p class="text-sm text-muted" style="margin-bottom: 1rem;">Items: <span id="fb-order-items"></span>
+                    </p>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px;">How was the food?</label>
+                        <div class="rating-chips-container">
+                            <div class="rating-chip image-chip" onclick="selectRating(1)" data-value="1" title="1">
+                                <img src="../images/chip-rating.png" alt="Rate 1">
+                            </div>
+                            <div class="rating-chip image-chip" onclick="selectRating(2)" data-value="2" title="2">
+                                <img src="../images/chip-rating.png" alt="Rate 2">
+                            </div>
+                            <div class="rating-chip image-chip" onclick="selectRating(3)" data-value="3" title="3">
+                                <img src="../images/chip-rating.png" alt="Rate 3">
+                            </div>
+                            <div class="rating-chip image-chip" onclick="selectRating(4)" data-value="4" title="4">
+                                <img src="../images/chip-rating.png" alt="Rate 4">
+                            </div>
+                            <div class="rating-chip image-chip" onclick="selectRating(5)" data-value="5" title="5">
+                                <img src="../images/chip-rating.png" alt="Rate 5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Comment (Optional)</label>
+                        <textarea id="fb-comment" class="form-input" rows="3" placeholder="Tell us more..."></textarea>
+                    </div>
+
+                    <button id="btn-submit-feedback" class="btn btn-primary" onclick="submitFeedback()"
+                        style="width: 100%;">
+                        Submit Feedback
+                    </button>
+                </div>
+            </div>
+        </div> <!-- End main-app-content -->
+
+        <!-- Firebase SDKs -->
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+                authDomain: "foodly-40d16.firebaseapp.com",
+                projectId: "foodly-40d16",
+                storageBucket: "foodly-40d16.firebasestorage.app",
+                messagingSenderId: "74040922594",
+                appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+            };
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            } else {
+                firebase.app();
+            }
+
+            const db = firebase.firestore();
+            const auth = firebase.auth();
+
+            // UI Elements
+            const authBtnDefault = document.getElementById('sidebar-auth-btn');
+            const authTextDefault = document.getElementById('sidebar-auth-text');
+            const authIconDefault = document.getElementById('sidebar-auth-icon');
+            const lockedView = document.getElementById('locked-view');
+            const mainContent = document.getElementById('main-app-content');
+            const loadingView = document.getElementById('loading-view');
+
+            // Initial State: Show Loading, Hide others
+            if (loadingView) loadingView.style.display = 'flex';
+            if (lockedView) lockedView.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'none';
+
+            // Helper: Update UI for Logged In User
+            async function handleLoggedIn(user) {
+                console.log("Orders Auth: User detected", user.uid);
+
+                if (authTextDefault) authTextDefault.innerText = "Logout";
+                if (authBtnDefault) {
+                    authBtnDefault.onclick = () => { if (window.logout) window.logout(); else auth.signOut().then(() => window.location.reload()); };
+                    authBtnDefault.classList.add('text-danger');
+                    authBtnDefault.style.color = '#ef4444';
+                }
+                if (authIconDefault) authIconDefault.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>';
+
+                // Show Main Content
+                if (loadingView) loadingView.style.display = 'none';
+                if (lockedView) lockedView.style.display = 'none';
+                if (mainContent) mainContent.style.display = 'block';
+
+                // Check Admin (Silent)
+                try {
+                    const snap = await db.collection("users").doc(user.uid).get();
+                    if (snap.exists && snap.data().role === "admin") {
+                        window.location.href = "admin.html";
+                    }
+                } catch (e) { console.error(e); }
+            }
+
+            // Helper: Update UI for Guest
+            function handleGuest() {
+                console.log("Orders Auth: No user (Guest)");
+
+                if (authTextDefault) authTextDefault.innerText = "Login";
+                if (authBtnDefault) {
+                    authBtnDefault.onclick = () => window.location.href = 'index.html';
+                    authBtnDefault.classList.remove('text-danger');
+                    authBtnDefault.style.color = 'var(--primary-color)';
+                }
+
+                // Show Lock Screen
+                if (loadingView) loadingView.style.display = 'none';
+                if (mainContent) mainContent.style.display = 'none';
+                if (lockedView) lockedView.style.display = 'block';
+            }
+
+            // Safety Timeout (Fail-safe)
+            const authTimeout = setTimeout(() => {
+                console.warn("Auth listener timed out. Checking currentUser manually...");
+                const user = auth.currentUser;
+                if (user) {
+                    handleLoggedIn(user);
+                } else {
+                    handleGuest();
+                }
+            }, 1500); // 1.5s timeout
+
+            // Main Listener
+            auth.onAuthStateChanged((user) => {
+                clearTimeout(authTimeout); // Cancel timeout
+                if (user) {
+                    handleLoggedIn(user);
+                } else {
+                    handleGuest();
+                }
+            });
+
+
+
+
+            // --- Helpers for main.js ---
+
+            function generateOrdersHTML(orders) {
+                if (orders.length === 0) return `<div class="text-center text-muted" style="margin-top: 3rem; font-size: 1.1rem;">You haven’t placed any orders yet.</div>`;
+
+                // Split Orders
+                const activeOrders = [];
+                const pastOrders = [];
+
+                orders.forEach(order => {
+                    const isPickedUp = order.userPickedUp === true;
+                    // Logic: If user picked it up, consider it Past (Completed visually)
+                    // If status is "Completed", consider it Past
+                    // Otherwise Active
+                    if (order.status === 'Completed' || order.status === 'Cancelled' || isPickedUp) {
+                        pastOrders.push(order);
+                    } else {
+                        activeOrders.push(order);
+                    }
+                });
+
+                const renderCard = (order, isPast) => {
+                    // Check local override flag
+                    const isPickedUp = order.userPickedUp === true;
+
+                    let displayStatus = order.status;
+                    if (isPickedUp) displayStatus = 'Completed';
+                    else if (order.status === 'Cancelled') displayStatus = 'Cancelled';
+
+                    let statusClass = 'status-preparing';
+                    let cardClass = '';
+
+                    if (displayStatus === 'Ready') {
+                        statusClass = 'status-ready';
+                        cardClass = 'ready';
+                    } else if (displayStatus === 'Completed' || displayStatus === 'Cancelled') {
+                        statusClass = 'status-completed';
+                        cardClass = 'completed';
+                    }
+
+                    // Date Logic
+                    let dateStr = 'Just now';
+                    try {
+                        if (order.createdAtIso) {
+                            const date = new Date(order.createdAtIso);
+                            dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        } else if (order.createdAt && typeof order.createdAt.toDate === 'function') {
+                            const date = order.createdAt.toDate();
+                            dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }
+                    } catch (e) { console.error("Date parse error", e); }
+
+                    // Items List - clean single line or stacked? Stacked per requirements.
+                    const itemsList = order.items ? order.items.map(i => `<div>${i.name} <span class="text-muted">x${i.quantity}</span></div>`).join('') : '';
+                    const orderIdDisplay = order.orderNumber || order.orderId || order.id.substring(0, 6).toUpperCase();
+
+                    // Buttons
+                    let actionButtons = '';
+                    if (order.status === 'Ready' && !isPickedUp) {
+                        // Picked Button
+                        actionButtons += `
+                            <button onclick="markOrderPicked('${order.id}')" class="btn btn-sm btn-primary" style="margin-top: auto; border-radius: 20px; font-weight: 600; width: 100%;">
+                                ✅ Picked Up
+                            </button>
+                         `;
+                    }
+                    if (displayStatus === 'Completed') {
+                        if (order.feedbackSubmitted) {
+                            actionButtons += `<div style="margin-top:auto; font-size:0.8rem; color:var(--success-color);">✓ Feedback Sent</div>`;
+                        } else {
+                            const itemsText = order.items ? order.items.map(i => i.name).join(', ').replace(/'/g, "\\'") : '';
+                            actionButtons += `<button onclick="openFeedbackModal('${order.id}', '${orderIdDisplay}', '${itemsText}')" class="btn btn-sm" style="margin-top: auto; border: 1px solid #ddd; background: white; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">Give Feedback</button>`;
+                        }
+                    }
+
+                    const typeBadge = order.orderType ? `<span style="background:${order.orderType.includes('Quick') ? '#fff3cd' : '#e3f2fd'}; color:${order.orderType.includes('Quick') ? '#856404' : '#0d47a1'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display:inline-block; margin-bottom:4px;">${order.orderType.toUpperCase()}</span>` : '';
+
+                    return `
+                    <div class="order-card ${cardClass}">
+                        
+                        <!-- LEFT ZONE: ID & Type -->
+                        <div class="card-left">
+                            ${typeBadge}
+                            <div class="order-id-text">#${orderIdDisplay}</div>
+                        </div>
+
+                        <!-- CENTER ZONE: Date & Items -->
+                        <div class="card-center">
+                            <div class="order-date-text">${dateStr} &bull; ${order.items ? order.items.length : 0} Items</div>
+                            <div class="order-items-list">
+                                ${itemsList}
+                            </div>
+                        </div>
+
+                        <!-- RIGHT ZONE: Status, Price, Actions -->
+                        <div class="card-right">
+                            <span class="status-badge ${statusClass}">${displayStatus}</span>
+                            <div style="font-size: 1.1rem; font-weight: 700;">₹${Number(order.total).toFixed(2)}</div>
+                            ${actionButtons}
+                        </div>
+
+                    </div>`;
+                };
+
+                let html = '';
+
+                if (activeOrders.length > 0) {
+                    html += `<h3 class="order-section-title">Active Orders</h3>`;
+                    html += activeOrders.map(o => renderCard(o, false)).join('');
+                }
+
+                if (pastOrders.length > 0) {
+                    html += `<h3 class="order-section-title">Past Orders</h3>`;
+                    html += pastOrders.map(o => renderCard(o, true)).join('');
+                }
+
+                if (html === '') return `<div class="text-center text-muted" style="margin-top: 3rem;">You haven’t placed any orders yet.</div>`;
+
+                return html;
+            }
+
+            async function markOrderPicked(orderId) {
+                if (!confirm("Confirm you have picked up this order?")) return;
+
+                try {
+                    // Update only user-facing flag
+                    await db.collection('orders').doc(orderId).update({
+                        userPickedUp: true
+                    });
+                    // UI listener will auto-update
+                } catch (error) {
+                    console.error("Error marking picked:", error);
+                    alert("Failed to update status.");
+                }
+            }
+
+            async function clearUserHistory() {
+                const user = auth.currentUser;
+                if (!user) return;
+                if (!confirm("Are you sure? This will hide your past orders.")) return;
+
+                try {
+                    // Fetch ALL orders for user to ensure we catch everything that is visually "Past"
+                    const snapshot = await db.collection('orders').where('userId', '==', user.uid).get();
+
+                    if (snapshot.empty) {
+                        alert("No orders found.");
+                        return;
+                    }
+
+                    const batch = db.batch();
+                    let count = 0;
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+
+                        // Check if it's already hidden
+                        if (data.hiddenFromUser) return;
+
+                        // Check if it qualifies as "History" (Past Order)
+                        // Matches logic in generateOrdersHTML: Completed, Cancelled, or Picked Up
+                        const isPast = data.status === 'Completed' ||
+                            data.status === 'Cancelled' ||
+                            data.userPickedUp === true;
+
+                        if (isPast) {
+                            batch.update(doc.ref, { hiddenFromUser: true });
+                            count++;
+                        }
+                    });
+
+                    if (count > 0) {
+                        await batch.commit();
+                        // Clear local cache to force refresh
+                        localStorage.removeItem(`cachedOrders_${user.uid}`);
+                        alert("History cleared successfully.");
+                    } else {
+                        alert("No past orders to clear.");
+                    }
+                } catch (error) {
+                    console.error("Error clearing history:", error);
+                    alert("Failed to clear history.");
+                }
+            }
+
+            // --- Feedback Logic ---
+            let currentFeedbackOrderId = null;
+            let currentRating = 0;
+
+            window.openFeedbackModal = function (orderId, orderDisplayId, itemsText) {
+                currentFeedbackOrderId = orderId;
+                const idEl = document.getElementById('fb-order-id');
+                const itemsEl = document.getElementById('fb-order-items');
+
+                if (idEl) idEl.innerText = orderDisplayId;
+                if (itemsEl) itemsEl.innerText = itemsText;
+
+                // Reset State
+                currentRating = 0;
+                if (document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
+                document.querySelectorAll('.rating-chip').forEach(c => c.classList.remove('selected'));
+
+                const modal = document.getElementById('feedback-modal');
+                if (modal) {
+                    modal.classList.add('show');
+                    modal.style.display = 'flex';
+                }
+            };
+
+            window.closeFeedbackModal = function () {
+                const modal = document.getElementById('feedback-modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                    setTimeout(() => modal.style.display = 'none', 300);
+                }
+                currentFeedbackOrderId = null;
+            };
+
+            window.selectRating = function (rating) {
+                currentRating = rating;
+                document.querySelectorAll('.rating-chip').forEach(chip => {
+                    const val = parseInt(chip.getAttribute('data-value'));
+                    if (val <= rating) { // Cumulative Selection
+                        chip.classList.add('selected');
+                    } else {
+                        chip.classList.remove('selected');
+                    }
+                });
+            };
+
+            window.submitFeedback = async function () {
+                if (!currentFeedbackOrderId) return;
+
+                if (currentRating === 0) {
+                    alert("Please select a rating (tap a chip!)");
+                    return;
+                }
+
+                const commentEl = document.getElementById('fb-comment');
+                const comment = commentEl ? commentEl.value : '';
+
+                const btn = document.getElementById('btn-submit-feedback');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "Submitting...";
+                }
+
+                try {
+                    await db.collection('orders').doc(currentFeedbackOrderId).update({
+                        feedback: {
+                            rating: currentRating,
+                            comment: comment,
+                            createdAt: new Date().toISOString()
+                        },
+                        feedbackSubmitted: true
+                    });
+
+                    // Success Feedback
+                    closeFeedbackModal();
+
+                } catch (error) {
+                    console.error("Error submitting feedback:", error);
+                    alert("Failed to submit feedback. Please try again.");
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = "Submit Feedback";
+                    }
+                }
+            };
+
+            // Close modal on outside click
+            window.addEventListener('click', function (event) {
+                const modal = document.getElementById('feedback-modal');
+                if (event.target == modal) {
+                    closeFeedbackModal();
+                }
+            });
+        </script>
+    </main>
+    <script src="../js/translations.js"></script>
+    <script src="../js/main.js"></script>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.user-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+    </script>
+</body>
+
+</html>

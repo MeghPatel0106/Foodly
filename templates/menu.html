@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-VXEHBX2S2V', {
+            send_page_view: true
+        });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css?v=2">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Internal styles removed. Moved to css/style.css -->
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="user-sidebar">
+        <div class="user-sidebar-header">
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">×</button>
+            <a href="menu.html" class="user-sidebar-logo">
+                <img src="../images/logo.png" alt="Logo" width="30">
+                Foodly
+            </a>
+        </div>
+
+        <ul class="user-sidebar-menu">
+            <li>
+                <a href="dashboard.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📊</span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=meal" class="user-sidebar-link active" id="link-meal">
+                    <span class="user-sidebar-icon">🍽️</span>
+                    Meal
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
+                    <span class="user-sidebar-icon">🍿</span>
+                    Quick Snacks
+                </a>
+            </li>
+            <li>
+                <a href="orders.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📦</span>
+                    Order
+                </a>
+            </li>
+            <li>
+                <a href="invoices.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🧾</span>
+                    Invoice
+                </a>
+            </li>
+            <li>
+                <a href="cart.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">🛒</span>
+                    Cart
+                    <span id="cart-count"
+                        style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="analytics.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">📈</span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">⚙️</span>
+                    Setting
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-sidebar-footer">
+
+            <button id="sidebar-auth-btn" class="btn btn-sm text-danger"
+                style="margin-top: 10px; padding-left: 0; color: #ef4444; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;">
+                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span id="sidebar-auth-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="user-main-content">
+        <nav class="user-top-navbar">
+            <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                ☰
+            </button>
+
+            <!-- Dedicated Slot for Search Bar (Teleported via JS) -->
+            <!-- Positioned in flow to take available width -->
+            <div id="navbar-search-slot" style="display: none; flex-grow: 1; margin: 0 2rem; max-width: 600px;"></div>
+
+            <div class="navbar-content-end">
+
+                <!-- Notification Bell -->
+                <div class="notification-icon-wrapper" onclick="toggleNotifications()">
+                    <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                    <span class="badge" id="nav-notification-badge" style="display: none;"></span>
+                </div>
+
+                <!-- Profile Widget -->
+                <div class="user-profile-widget" onclick="openProfile()"
+                    style="border: none; box-shadow: none; background: transparent;">
+                    <div class="user-info-text">
+                        <span class="user-name" id="top-nav-name">...</span>
+                        <span class="user-email" id="top-nav-email"
+                            style="font-size: 0.75rem; color: var(--text-light);"></span>
+                    </div>
+                    <img id="top-nav-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                        class="user-avatar-circle" alt="Profile">
+                </div>
+            </div>
+        </nav>
+        </nav>
+
+        <div class="container animate-fade-in">
+
+            <!-- Main Menu View -->
+            <div id="menu-view" class="hidden">
+                <header class="menu-header">
+                    <button onclick="initMenuSelection()" class="back-link" aria-label="Go back"
+                        style="display: flex; align-items: center; padding: 8px; border: none; background: none; cursor: pointer; color: var(--text-dark);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg> </button>
+                    <!-- Search Container (Target for moving to Navbar) -->
+                    <div id="body-search-placeholder">
+                        <div class="search-container" id="menu-search-container">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Search for food..." id="searchInput">
+                        </div>
+                    </div>
+
+                    <div class="category-scroll" id="categories">
+                        <!-- Populated by JS -->
+                        <button class="category-chip active">All</button>
+                    </div>
+                </header>
+
+                <div class="food-grid" id="menu-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Quick Meals View -->
+            <div id="quick-meals-view" class="hidden">
+                <header class="menu-header">
+                    <button onclick="initMenuSelection()" class="back-link" aria-label="Go back"
+                        style="margin-bottom: 10px; display: flex; align-items: center; padding: 8px; border: none; background: none; cursor: pointer; color: var(--text-dark);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </button>
+                    <div id="quick-search-placeholder">
+                        <div class="search-container" id="quick-search-container">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" class="search-input" placeholder="Search for food..."
+                                id="quickSearchInput" onkeyup="renderQuickMenu()">
+                        </div>
+                    </div>
+                    <!-- Reusing the exact same structure for consistency -->
+                    <div class="category-scroll" id="quick-categories">
+                        <!-- Populated by JS -->
+                        <button class="category-chip active">All</button>
+                    </div>
+                </header>
+
+                <div class="quick-meal-grid" id="quick-meals-grid" style="margin-top: 20px;">
+                    <!-- Populated by JS -->
+                    <p class="text-center text-muted" style="grid-column: 1/-1;">Loading quick meals...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Cart Button for Mobile -->
+        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100; display: none;" id="mobile-cart-btn">
+            <a href="cart.html" class="btn btn-primary" style="box-shadow: var(--shadow-lg);">
+                🛒 View Cart (<span id="mobile-cart-count">0</span>)
+            </a>
+        </div>
+
+        <!-- Profile Modal -->
+        <div id="profile-modal" class="modal-overlay">
+            <div class="modal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0;">My Profile</h2>
+                    <button onclick="closeProfile()" class="close-btn"
+                        style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+
+                <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                    <img id="avatar-preview" src="" alt="Profile Avatar"
+                        style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #f3f3f3; box-shadow: var(--shadow-sm);">
+                </div>
+
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <label class="form-label">Select Avatar</label>
+                    <div class="avatar-grid" id="avatar-grid">
+                        <!-- Avatars populated by JS -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="profile-name" class="form-input" placeholder="Your Name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email (Read Only)</label>
+                    <input type="email" id="profile-email" class="form-input" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" id="profile-phone" class="form-input" placeholder="Enter phone number"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select id="profile-gender" class="form-input">
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <button onclick="saveProfile()" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Save Profile
+                </button>
+            </div>
+        </div>
+
+        <script>
+            // Inline categories to preserve UI structure
+            const categories = [
+                { id: 'all', name: 'All' },
+                { id: 'punjabi', name: 'Punjabi Item' },
+                { id: 'chinese', name: 'Chinese' },
+                { id: 'indian_snack', name: 'Snacks' },
+                { id: 'fast_food', name: 'Fast Food' }
+            ];
+
+            const quickCategories = [
+                { id: 'all', name: 'All' },
+                { id: 'drinks', name: 'Drinks' },
+                { id: 'packets', name: 'Packets' }
+            ];
+
+            // Define empty foodItems for main.js to use
+            let foodItems = [];
+        </script>
+
+
+        <!-- Firebase SDKs -->
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+                authDomain: "foodly-40d16.firebaseapp.com",
+                projectId: "foodly-40d16",
+                storageBucket: "foodly-40d16.firebasestorage.app",
+                messagingSenderId: "74040922594",
+                appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+
+            // STRICT USER PROTECTION
+            // STRICT USER PROTECTION -> REMOVED FOR PUBLIC BROWSING
+            firebase.auth().onAuthStateChanged(async (user) => {
+                updateSidebarAuthUI(user); // Centralized UI update
+
+                if (user) {
+                    const snap = await firebase.firestore()
+                        .collection("users")
+                        .doc(user.uid)
+                        .get();
+
+                    if (snap.exists && snap.data().role === "admin") {
+                        window.location.href = "admin.html";
+                    }
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Render static categories first
+                renderCategories();
+                updateCartBadge();
+
+                // Initialize Profile System
+                initProfileListener();
+
+                // Replaced immediate load with Selection Init
+                initMenuSelection();
+            });
+
+            // Exposed function for main.js to call
+            window.loadMenu = function () {
+                // Check if already loaded to avoid re-fetch
+                if (foodItems.length > 0) {
+                    renderMenu();
+                    return;
+                }
+
+                // 1. CACHE READ (Stale-While-Revalidate)
+                const cachedMenu = localStorage.getItem('cachedMenu');
+                if (cachedMenu) {
+                    try {
+                        foodItems = JSON.parse(cachedMenu);
+                        renderMenu();
+                    } catch (e) {
+                        console.error("Cache parse error", e);
+                    }
+                }
+
+                // Fetch food items from Firestore
+                db.collection("food_items")
+                    .where("available", "==", true)
+                    .get()
+                    .then((snapshot) => {
+                        foodItems = []; // clear existing
+                        snapshot.forEach((doc) => {
+                            const data = doc.data();
+                            foodItems.push({
+                                id: doc.id,
+                                name: data.Name,
+                                price: Number(data.Price),
+                                image: data.Image,
+                                category: data.Category || data.category || 'all',
+                                description: data.Description || 'Delicious food item'
+                            });
+                        });
+
+                        // Render and Cache
+                        renderMenu();
+                        localStorage.setItem('cachedMenu', JSON.stringify(foodItems));
+                    })
+                    .catch((error) => {
+                        console.error("Error loading menu:", error);
+                        document.getElementById('menu-grid').innerHTML = `<p class="text-center">Error loading menu. Please try again.</p>`;
+                    });
+            };
+        </script>
+
+
+
+
+    </main>
+    <script src="../js/translations.js"></script>
+    <script src="../js/main.js?v=2"></script>
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.user-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            }
+        }
+    </script>
+</body>
+
+</html>
