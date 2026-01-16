@@ -21,32 +21,55 @@
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- Premium Order Card Design --- */
         .order-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-md);
+            background: var(--white);
+            border-radius: 16px;
+            /* Premium rounded corners */
+            border: 1px solid #f0f0f0;
+            padding: 24px;
+            margin-bottom: 20px;
             display: grid;
-            grid-template-columns: 200px 1fr 180px;
+            grid-template-columns: 180px 1fr 200px;
             /* Left | Center | Right */
-            gap: 1.5rem;
+            gap: 24px;
             align-items: start;
-            /* Top alignment */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            /* Soft premium shadow */
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        /* Responsive: Stack on mobile */
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .order-card {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 16px;
+                padding: 20px;
             }
 
             .card-right {
                 text-align: left !important;
+                align-items: flex-start !important;
                 flex-direction: row !important;
-                justify-content: flex-start !important;
-                margin-top: 0.5rem;
+                justify-content: space-between !important;
+                width: 100%;
+                margin-top: 12px;
+                padding-top: 16px;
+                border-top: 1px solid #f0f0f0;
+            }
+
+            .card-left {
+                flex-direction: row !important;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #f0f0f0;
+                padding-bottom: 12px;
+                margin-bottom: 0;
             }
         }
 
@@ -54,92 +77,192 @@
         .card-left {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .card-center {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            overflow: hidden;
-            /* Contain long lists */
+            gap: 8px;
         }
 
         .card-right {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 12px;
             align-items: flex-end;
-            /* Right align */
             text-align: right;
             height: 100%;
         }
 
-        /* Order Info Styles */
-        .order-id-text {
-            font-weight: 700;
-            color: var(--text-dark);
-            font-size: 1.05rem;
-        }
-
-        .order-date-text {
-            font-size: 0.85rem;
-            color: #888;
-        }
-
-        .order-items-list {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            line-height: 1.5;
-        }
-
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: var(--radius-full);
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .status-preparing {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-ready {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-completed {
-            background: #f8f9fa;
-            color: #6c757d;
-            border: 1px solid #dee2e6;
-        }
-
-        .order-section-title {
+        /* Typography & Elements */
+        .order-id-display {
             font-size: 1.1rem;
             font-weight: 700;
-            margin: 2rem 0 1rem;
-            color: var(--text-dark);
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 0.5rem;
+            color: var(--dark-color);
+            letter-spacing: 0.5px;
         }
 
-        /* Visual Polish: Active vs Past */
-        .order-card.ready {
-            border-left: 5px solid #28a745;
-            background: #fdfdfd;
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.05);
-            /* Subtle lift */
+        .order-date-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-weight: 500;
         }
 
-        .order-card.completed {
-            opacity: 0.85;
-            background: #fafafa;
-            border-color: #eee;
+        .order-items-block {
+            line-height: 1.6;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 300px;
+        }
+
+        .item-qty {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+
+        /* Badges */
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            /* Pill */
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Neutral Color System */
+        .badge-pending {
+            background-color: #FFF3E0;
+            /* Soft Orange */
+            color: #E65100;
+        }
+
+        .badge-ready {
+            background-color: #E8F5E9;
+            /* Soft Green */
+            color: #2E7D32;
+        }
+
+        .badge-completed {
+            background-color: #F5F5F5;
+            /* Light Gray */
+            color: #616161;
+            border: 1px solid #E0E0E0;
+        }
+
+        .badge-cancelled {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        /* Type Badge (Meal/Snack) */
+        .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background-color: #FFEBEE;
+            /* Soft Brand Red (Primary) */
+            color: #C62828;
+            width: fit-content;
+        }
+
+        .type-badge.quick {
+            background-color: #E0F2F1;
+            /* Soft Brand Teal (Secondary) */
+            color: #00695C;
+        }
+
+        /* Queue Info */
+        .queue-pill {
+            display: inline-flex;
+            align-items: center;
+            background-color: #F8F9FA;
+            border: 1px solid #E9ECEF;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            margin-top: 8px;
+            gap: 6px;
+        }
+
+        .queue-count {
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+
+        /* Price */
+        .price-display {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark-color);
+        }
+
+        /* Visual Polish - Left Border Indicators */
+        .order-card.status-left-ready {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .order-card.status-left-pending {
+            border-left: 4px solid #FF9800;
+        }
+
+        /* Picked Up Button (Minimal) */
+        .btn-pickup {
+            background-color: var(--primary-color);
+            color: white !important;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: auto;
+            margin-top: auto;
+        }
+
+        .btn-pickup:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-pickup:active {
+            transform: translateY(0);
+        }
+
+        /* Section Title */
+        .order-section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .order-section-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: #E0E0E0;
         }
 
         /* Feedback Modal Styles */
@@ -343,10 +466,14 @@
             <div class="container animate-fade-in" style="margin-top: 2rem; max-width: 800px;">
                 <div class="flex justify-between items-center mb-4">
                     <h1 style="margin-bottom: 0;">My Orders</h1>
-                    <button onclick="clearUserHistory()" class="text-sm text-danger"
-                        style="background:none; border:none; cursor:pointer; color: #dc3545;">
-                        Clear History
-                    </button>
+                    <div>
+                        <button onclick="downloadUserOrdersCSV()" class="btn btn-sm btn-secondary"
+                            style="margin-right: 10px;">⬇ Download CSV</button>
+                        <button onclick="clearUserHistory()" class="text-sm text-danger"
+                            style="background:none; border:none; cursor:pointer; color: #dc3545;">
+                            Clear History
+                        </button>
+                    </div>
                 </div>
 
                 <div id="orders-list">
@@ -377,7 +504,8 @@
 
                     <div class="form-group">
                         <label class="form-label">Full Name</label>
-                        <input type="text" id="profile-name" class="form-input" placeholder="Enter your name">
+                        <input type="text" id="profile-name" class="form-input" placeholder="Enter your name"
+                            onkeypress="if(event.key === 'Enter') saveProfile()">
                     </div>
 
                     <div class="form-group">
@@ -388,7 +516,8 @@
                     <div class="form-group">
                         <label class="form-label">Mobile Number</label>
                         <input type="tel" id="profile-phone" class="form-input" placeholder="Enter mobile number"
-                            maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            maxlength="10" onkeypress="if(event.key === 'Enter') saveProfile()"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
 
                     <div class="form-group">
@@ -442,7 +571,8 @@
 
                     <div class="form-group">
                         <label class="form-label">Comment (Optional)</label>
-                        <textarea id="fb-comment" class="form-input" rows="3" placeholder="Tell us more..."></textarea>
+                        <textarea id="fb-comment" class="form-input" rows="3" placeholder="Tell us more..."
+                            onkeypress="if(event.key === 'Enter') { event.preventDefault(); submitFeedback(); }"></textarea>
                     </div>
 
                     <button id="btn-submit-feedback" class="btn btn-primary" onclick="submitFeedback()"
@@ -457,6 +587,7 @@
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
         <script>
             const firebaseConfig = {
@@ -475,6 +606,21 @@
 
             const db = firebase.firestore();
             const auth = firebase.auth();
+
+            // Global Queue State
+            window.globalMealQueue = [];
+
+            function refreshOrdersUI(userId) {
+                const cacheKey = `cachedOrders_${userId}`;
+                const cachedData = localStorage.getItem(cacheKey);
+                if (cachedData) {
+                    const orders = JSON.parse(cachedData);
+                    const container = document.getElementById('orders-list');
+                    if (container && orders.length > 0 && typeof generateOrdersHTML === 'function') {
+                        container.innerHTML = generateOrdersHTML(orders);
+                    }
+                }
+            }
 
             // UI Elements
             const authBtnDefault = document.getElementById('sidebar-auth-btn');
@@ -513,6 +659,48 @@
                         window.location.href = "admin.html";
                     }
                 } catch (e) { console.error(e); }
+
+                // --- START LISTENER: Global Queue for Meal Orders ---
+                // Listens to ALL 'Preparing' or 'Pending' orders to calculate position
+                if (!window.globalQueueListener) {
+                    window.globalQueueListener = db.collection('orders')
+                        .where('status', 'in', ['Pending', 'Preparing'])
+                        .onSnapshot(snapshot => {
+                            const queue = [];
+                            snapshot.forEach(doc => {
+                                const d = doc.data();
+
+                                // LOGIC: Strict Meal Filter
+                                // 1. Check orderType fields
+                                const type = d.orderType || d.type || '';
+                                const isQuickLabel = type === 'Quick Snack Order' || type === 'quick-snack' || type === 'snack';
+
+                                // 2. Check Items (Double check)
+                                const hasQuickItems = d.items && d.items.some(i => i.type === 'quick' || i.type === 'quick-snack');
+
+                                // 3. Exclusion Rule
+                                if (isQuickLabel || hasQuickItems) {
+                                    return; // Skip this order
+                                }
+
+                                // 4. Implicitly included as Meal (or Legacy)
+                                queue.push({
+                                    id: doc.id,
+                                    createdAt: d.createdAt,
+                                    // Use server timestamp or client date for sort
+                                    sortTime: d.createdAt ? (d.createdAt.toMillis ? d.createdAt.toMillis() : new Date(d.createdAt).getTime()) : Date.now()
+                                });
+                            });
+
+                            // Sort FIFO (Oldest first)
+                            queue.sort((a, b) => a.sortTime - b.sortTime);
+
+                            window.globalMealQueue = queue;
+                            // Trigger UI Refresh
+                            refreshOrdersUI(user.uid);
+                        });
+                }
+                // --- END LISTENER ---
             }
 
             // Helper: Update UI for Guest
@@ -578,82 +766,137 @@
                 });
 
                 const renderCard = (order, isPast) => {
-                    // Check local override flag
                     const isPickedUp = order.userPickedUp === true;
 
                     let displayStatus = order.status;
                     if (isPickedUp) displayStatus = 'Completed';
                     else if (order.status === 'Cancelled') displayStatus = 'Cancelled';
 
-                    let statusClass = 'status-preparing';
-                    let cardClass = '';
+                    // 1. Status Badge Handling
+                    let statusBadgeClass = 'badge-pending'; // Default for Preparing/Pending
+                    let cardModifier = 'status-left-pending';
 
                     if (displayStatus === 'Ready') {
-                        statusClass = 'status-ready';
-                        cardClass = 'ready';
-                    } else if (displayStatus === 'Completed' || displayStatus === 'Cancelled') {
-                        statusClass = 'status-completed';
-                        cardClass = 'completed';
+                        statusBadgeClass = 'badge-ready';
+                        cardModifier = 'status-left-ready';
+                    } else if (displayStatus === 'Completed') {
+                        statusBadgeClass = 'badge-completed';
+                        cardModifier = ''; // No left border for completed
+                    } else if (displayStatus === 'Cancelled') {
+                        statusBadgeClass = 'badge-cancelled';
+                        cardModifier = '';
                     }
 
-                    // Date Logic
+                    // 2. Date Handling
                     let dateStr = 'Just now';
                     try {
-                        if (order.createdAtIso) {
-                            const date = new Date(order.createdAtIso);
-                            dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        } else if (order.createdAt && typeof order.createdAt.toDate === 'function') {
-                            const date = order.createdAt.toDate();
-                            dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        }
-                    } catch (e) { console.error("Date parse error", e); }
+                        let dateObj = null;
 
-                    // Items List - clean single line or stacked? Stacked per requirements.
-                    const itemsList = order.items ? order.items.map(i => `<div>${i.name} <span class="text-muted">x${i.quantity}</span></div>`).join('') : '';
+                        // 1. ISO String
+                        if (order.createdAtIso) {
+                            dateObj = new Date(order.createdAtIso);
+                        }
+                        // 2. Firestore Timestamp Object (Real) [has .toDate()]
+                        else if (order.createdAt && typeof order.createdAt.toDate === 'function') {
+                            dateObj = order.createdAt.toDate();
+                        }
+                        // 3. Serialized Firestore Timestamp (from JSON.parse) [has .seconds]
+                        else if (order.createdAt && order.createdAt.seconds) {
+                            dateObj = new Date(order.createdAt.seconds * 1000);
+                        }
+                        // 4. Standard Date String
+                        else if (order.createdAt) {
+                            dateObj = new Date(order.createdAt);
+                        }
+
+                        if (dateObj && !isNaN(dateObj.getTime())) {
+                            dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Date parse error", e);
+                    }
+
+                    // 3. Items List
+                    const itemsList = order.items ? order.items.map(i =>
+                        `<div class="item-row">
+                            <span>${i.name}</span>
+                            <span class="item-qty">x${i.quantity}</span>
+                        </div>`
+                    ).join('') : '';
+
                     const orderIdDisplay = order.orderNumber || order.orderId || order.id.substring(0, 6).toUpperCase();
 
-                    // Buttons
+                    // 4. Buttons (Actions)
                     let actionButtons = '';
                     if (order.status === 'Ready' && !isPickedUp) {
-                        // Picked Button
                         actionButtons += `
-                            <button onclick="markOrderPicked('${order.id}')" class="btn btn-sm btn-primary" style="margin-top: auto; border-radius: 20px; font-weight: 600; width: 100%;">
-                                ✅ Picked Up
+                            <button onclick="markOrderPicked('${order.id}')" class="btn-pickup">
+                                <span>✅</span> Picked Up
                             </button>
                          `;
                     }
                     if (displayStatus === 'Completed') {
                         if (order.feedbackSubmitted) {
-                            actionButtons += `<div style="margin-top:auto; font-size:0.8rem; color:var(--success-color);">✓ Feedback Sent</div>`;
+                            actionButtons += `<div style="margin-top:auto; font-size:0.8rem; color:var(--success-color); font-weight:600;">✓ Feedback Sent</div>`;
                         } else {
                             const itemsText = order.items ? order.items.map(i => i.name).join(', ').replace(/'/g, "\\'") : '';
-                            actionButtons += `<button onclick="openFeedbackModal('${order.id}', '${orderIdDisplay}', '${itemsText}')" class="btn btn-sm" style="margin-top: auto; border: 1px solid #ddd; background: white; color: #666; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">Give Feedback</button>`;
+                            actionButtons += `<button onclick="openFeedbackModal('${order.id}', '${orderIdDisplay}', '${itemsText}')" class="btn btn-sm" style="margin-top: auto; border: 1px solid #E0E0E0; background: white; color: var(--text-color); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; transition:all 0.2s;">Give Feedback</button>`;
                         }
                     }
 
-                    const typeBadge = order.orderType ? `<span style="background:${order.orderType.includes('Quick') ? '#fff3cd' : '#e3f2fd'}; color:${order.orderType.includes('Quick') ? '#856404' : '#0d47a1'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; display:inline-block; margin-bottom:4px;">${order.orderType.toUpperCase()}</span>` : '';
+                    // 5. Order Type Badge (Meal/Snack)
+                    const isQuick = order.orderType && (order.orderType.includes('Quick') || order.orderType === 'snack');
+                    const typeLabel = order.orderType ? order.orderType.toUpperCase() : 'ORDER';
+                    const typeHtml = `<span class="type-badge ${isQuick ? 'quick' : ''}">${typeLabel}</span>`;
+
+
+                    // 6. Queue Position (Subtle, Premium)
+                    let queueHtml = '';
+                    if (displayStatus === 'Preparing' || displayStatus === 'Pending') {
+                        if (window.globalMealQueue) {
+                            let queueIndex = -1;
+                            for (let i = 0; i < window.globalMealQueue.length; i++) {
+                                if (window.globalMealQueue[i].id === order.id) {
+                                    queueIndex = i;
+                                    break;
+                                }
+                            }
+                            if (queueIndex !== -1) {
+                                queueHtml = `
+                                    <div class="queue-pill">
+                                        <span>⏳ Queue Position:</span>
+                                        <span class="queue-count">${queueIndex}</span>
+                                    </div>`;
+                            }
+                        }
+                    }
 
                     return `
-                    <div class="order-card ${cardClass}">
+                    <div class="order-card ${cardModifier} animate-fade-in">
                         
                         <!-- LEFT ZONE: ID & Type -->
                         <div class="card-left">
-                            ${typeBadge}
-                            <div class="order-id-text">#${orderIdDisplay}</div>
+                            ${typeHtml}
+                            <div class="order-id-display">#${orderIdDisplay}</div>
                         </div>
 
                         <!-- CENTER ZONE: Date & Items -->
                         <div class="card-center">
-                            <div class="order-date-text">${dateStr} &bull; ${order.items ? order.items.length : 0} Items</div>
-                            <div class="order-items-list">
+                            <div class="order-date-label">${dateStr} &bull; ${order.items ? order.items.length : 0} Items</div>
+                            <div class="order-items-block">
                                 ${itemsList}
                             </div>
+                            ${queueHtml}
                         </div>
 
                         <!-- RIGHT ZONE: Status, Price, Actions -->
                         <div class="card-right">
-                            <span class="status-badge ${statusClass}">${displayStatus}</span>
-                            <div style="font-size: 1.1rem; font-weight: 700;">₹${Number(order.total).toFixed(2)}</div>
+                            <span class="status-badge ${statusBadgeClass}">${displayStatus}</span>
+                            <div class="price-display">₹${Number(order.total).toFixed(2)}</div>
                             ${actionButtons}
                         </div>
 
@@ -838,6 +1081,7 @@
     </main>
     <script src="../js/translations.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/fcm_foreground.js"></script>
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <script>
@@ -848,6 +1092,93 @@
                 sidebar.classList.toggle('show');
                 overlay.classList.toggle('show');
             }
+        }
+
+        // CSV EXPORT LOGIC
+        function exportToCSV(filename, headers, rows) {
+            if (!rows || !rows.length) {
+                alert("No data to export.");
+                return;
+            }
+            const csvContent = [
+                headers.join(","),
+                ...rows.map(row => row.map(item => `"${String(item || '').replace(/"/g, '""')}"`).join(","))
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadUserOrdersCSV() {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert("Please login to download orders.");
+                return;
+            }
+
+            // Read from LocalStorage Cache (Safe, no extra reads)
+            const cacheKey = `cachedOrders_${user.uid}`;
+            const cachedData = localStorage.getItem(cacheKey);
+
+            if (!cachedData) {
+                alert("No order data found. Please wait for orders to load.");
+                return;
+            }
+
+            let orders = [];
+            try {
+                orders = JSON.parse(cachedData);
+            } catch (e) {
+                console.error("Error parsing cached orders", e);
+                alert("Error reading order data.");
+                return;
+            }
+
+            // Filter Past Orders Only (Completed, Cancelled, Picked Up)
+            const pastOrders = orders.filter(o =>
+                o.status === 'Completed' ||
+                o.status === 'Cancelled' ||
+                o.userPickedUp === true
+            );
+
+            if (pastOrders.length === 0) {
+                alert("No past orders to export.");
+                return;
+            }
+
+            const headers = ['Order ID', 'Type', 'Items', 'Amount', 'Status', 'Date'];
+            const data = pastOrders.map(o => {
+                let dateStr = '';
+                // Try parse date
+                try {
+                    if (o.createdAtIso) dateStr = new Date(o.createdAtIso).toLocaleString();
+                    else if (o.createdAt && o.createdAt.seconds) dateStr = new Date(o.createdAt.seconds * 1000).toLocaleString();
+                    else if (o.createdAt) dateStr = new Date(o.createdAt).toLocaleString();
+                } catch (e) { }
+
+                const itemsStr = o.items ? o.items.map(i => `${i.name} (x${i.quantity})`).join('; ') : '';
+                const typeLabel = o.orderType || 'ORDER'; // Default fallback
+
+                return [
+                    o.orderNumber || o.id,
+                    typeLabel.toUpperCase(),
+                    itemsStr,
+                    o.total,
+                    o.status,
+                    dateStr
+                ];
+            });
+
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            exportToCSV(`my-orders-${dateStr}.csv`, headers, data);
         }
     </script>
 </body>

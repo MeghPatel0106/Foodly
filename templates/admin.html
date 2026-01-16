@@ -472,6 +472,11 @@
             padding: 15px;
             border-bottom: 1px solid #e2e8f0;
             background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .orders-list-body {
@@ -723,8 +728,6 @@
                 </div>
             </div>
 
-            <!-- Orders Tab -->
-            <!-- Active Orders Tab -->
             <!-- Active Orders Tab -->
             <div id="tab-active-orders">
                 <div class="section-title">
@@ -735,10 +738,17 @@
                     <!-- Meal Column -->
                     <div class="orders-column">
                         <div class="orders-column-header">
-                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
-                                🍲 Meal Orders
-                            </h3>
-                            <small class="text-muted">Main Course items</small>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                    🍲 Meal Orders
+                                </h3>
+                                <small class="text-muted">Main Course items</small>
+                            </div>
+                            <button class="action-btn btn-complete"
+                                onclick="completeAllOrders('active-meal-orders-grid')"
+                                style="font-size: 0.85rem; padding: 6px 12px; white-space: nowrap;">
+                                Complete All
+                            </button>
                         </div>
                         <div id="active-meal-orders-grid" class="orders-list-body">
                             <!-- JS Populates Here -->
@@ -748,10 +758,17 @@
                     <!-- Snack Column -->
                     <div class="orders-column">
                         <div class="orders-column-header">
-                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
-                                🍿 Quick Snacks
-                            </h3>
-                            <small class="text-muted">Packets & Drinks</small>
+                            <div style="flex: 1;">
+                                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                    🍿 Quick Snacks
+                                </h3>
+                                <small class="text-muted">Packets & Drinks</small>
+                            </div>
+                            <button class="action-btn btn-complete"
+                                onclick="completeAllOrders('active-snack-orders-grid')"
+                                style="font-size: 0.85rem; padding: 6px 12px; white-space: nowrap;">
+                                Complete All
+                            </button>
                         </div>
                         <div id="active-snack-orders-grid" class="orders-list-body">
                             <!-- JS Populates Here -->
@@ -764,8 +781,12 @@
             <div id="tab-order-history" style="display: none;">
                 <div class="section-title">
                     <h2>Order History</h2>
-                    <button class="action-btn" style="background: #fee2e2; color: #dc2626;"
-                        onclick="clearAdminHistory()">Clear All History</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="action-btn" onclick="downloadAdminHistoryCSV()"
+                            style="border: 1px solid #ccc; background: white; color: #333;">⬇ Download CSV</button>
+                        <button class="action-btn" style="background: #fee2e2; color: #dc2626;"
+                            onclick="clearAdminHistory()">Clear All History</button>
+                    </div>
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="admin-table">
@@ -1057,7 +1078,9 @@
             <div id="tab-reviews" style="display: none;">
                 <div class="section-title">
                     <h2>Customer Reviews</h2>
-                    <div class="btn-group">
+                    <div class="btn-group" style="display: flex; gap: 10px;">
+                        <button class="action-btn" onclick="downloadReviewsCSV()"
+                            style="border: 1px solid #ccc; background: white; color: #333;">⬇ Download CSV</button>
                         <button class="action-btn btn-primary" onclick="renderReviews(true)">Refresh</button>
                     </div>
                 </div>
@@ -1423,7 +1446,6 @@
             if (!snackGrid.hasChildNodes()) snackGrid.innerHTML = '<p class="text-muted">Loading...</p>';
 
             activeOrdersUnsubscribe = db.collection('orders')
-                .where('status', 'in', ['Pending', 'Preparing', 'Ready'])
                 .onSnapshot((snapshot) => {
                     // Create Fragments
                     const mealFragment = document.createDocumentFragment();
@@ -1443,11 +1465,14 @@
                         orders.push({ id: doc.id, ...doc.data() });
                     });
 
-                    // Client-side Sort
+                    // Client-side Sort (Safe for local/null timestamps)
                     orders.sort((a, b) => {
-                        const dateA = a.createdAt ? a.createdAt.toMillis() : 0;
-                        const dateB = b.createdAt ? b.createdAt.toMillis() : 0;
-                        return dateB - dateA;
+                        const getTime = (o) => {
+                            if (!o.createdAt) return Date.now(); // Put new orders at top if timestamp hasn't synced
+                            if (typeof o.createdAt.toMillis === 'function') return o.createdAt.toMillis();
+                            return new Date(o.createdAt).getTime() || 0;
+                        };
+                        return getTime(b) - getTime(a);
                     });
 
                     orders.forEach(data => {
@@ -1464,7 +1489,14 @@
 
                         let isMealOrder = true; // Default
 
-                        if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                        // 1. Check top-level orderType field (Android Support)
+                        if (data.orderType === 'Quick Snack Order') {
+                            isMealOrder = false;
+                        } else if (data.orderType === 'Meal Order') {
+                            isMealOrder = true;
+                        }
+                        // 2. Fallback to item-based checks
+                        else if (data.items && Array.isArray(data.items) && data.items.length > 0) {
                             // Check item types
                             const hasMealItem = data.items.some(i => i.type === 'meal');
                             // Allow both 'quick-snack' (legacy/plan) and 'quick' (actual main.js implementation)
@@ -1475,18 +1507,20 @@
                             }
                         }
 
-                        // Render Card
-                        const tempObj = document.createElement('div');
-                        tempObj.innerHTML = createOrderCardHTML(data.id, { ...data, displayName });
-                        const cardElement = tempObj.firstElementChild;
+                        // Render Card (Hide only Completed orders from active board)
+                        if (data.status !== 'Completed' && data.status !== 'Cancelled') {
+                            const tempObj = document.createElement('div');
+                            tempObj.innerHTML = createOrderCardHTML(data.id, { ...data, displayName });
+                            const cardElement = tempObj.firstElementChild;
 
-                        if (cardElement) {
-                            if (isMealOrder) {
-                                mealFragment.appendChild(cardElement);
-                                hasMealOrders = true;
-                            } else {
-                                snackFragment.appendChild(cardElement);
-                                hasSnackOrders = true;
+                            if (cardElement) {
+                                if (isMealOrder) {
+                                    mealFragment.appendChild(cardElement);
+                                    hasMealOrders = true;
+                                } else {
+                                    snackFragment.appendChild(cardElement);
+                                    hasSnackOrders = true;
+                                }
                             }
                         }
                     });
@@ -1618,6 +1652,7 @@
             // Query for History Orders
             db.collection('orders')
                 .where('status', '==', 'Completed')
+                .limit(100) // Optimization: Limit to last 100 orders
                 .onSnapshot((snapshot) => {
                     let orders = [];
                     snapshot.forEach(doc => {
@@ -1634,6 +1669,9 @@
                         const dateB = b.createdAt ? b.createdAt.toMillis() : 0;
                         return dateB - dateA;
                     });
+
+                    // Cache for CSV Export
+                    window.cachedHistoryOrders = orders;
 
                     renderHistoryOrders(orders);
                 }, (error) => {
@@ -1793,6 +1831,36 @@
             }
         }
 
+        async function completeAllOrders(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            // Find only orders that are READY to be completed (have the Complete button)
+            const completeButtons = container.querySelectorAll('.btn-complete');
+
+            if (completeButtons.length === 0) {
+                // Nothing to do quietly or alert? 
+                // User asked for minimal logic. If nothing to complete, we do nothing.
+                return;
+            }
+
+            const promises = [];
+            completeButtons.forEach(btn => {
+                const card = btn.closest('.order-card');
+                if (card && card.id) {
+                    // Reusing the existing updateStatus function logic
+                    promises.push(updateStatus(card.id, 'Completed'));
+                }
+            });
+
+            try {
+                await Promise.all(promises);
+            } catch (error) {
+                console.error("Error in bulk completion:", error);
+                alert("Some orders failed to complete. Check console.");
+            }
+        }
+
         /* --- GLOBAL MOBILE SIDEBAR TOGGLE --- */
         window.toggleAdminSidebar = function () {
             const sidebar = document.getElementById('adminSidebar');
@@ -1830,8 +1898,9 @@
 
         function updateStats(orders) {
             const total = orders.length;
-            const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
-            const pending = orders.filter(o => o.status === 'Pending' || o.status === 'Preparing').length;
+            const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+            // Pending: Either status is 'Pending', missing, or 'Preparing'
+            const pending = orders.filter(o => !o.status || o.status === 'Pending' || o.status === 'Preparing').length;
 
             document.getElementById('stats-orders').innerText = total;
             document.getElementById('stats-revenue').innerText = '₹' + revenue.toFixed(2);
@@ -1984,7 +2053,7 @@
                 html += `
                 <tr id="row-${item.id}">
                     <td class="flex items-center gap-sm">
-                        <img src="${item.Image || item.image || 'https://via.placeholder.com/40'}" width="40" height="40" style="border-radius:4px; object-fit: cover;">
+                        <img loading="lazy" src="${item.Image || item.image || 'https://via.placeholder.com/40'}" width="40" height="40" style="border-radius:4px; object-fit: cover;">
                         ${item.Name || item.name}
                     </td>
                     <td style="text-transform:capitalize">${itemCategory}</td>
@@ -2015,9 +2084,12 @@
             tbody.innerHTML = html;
         }
 
+        let filterMenuTimeout;
         function filterMenu() {
-            // Re-render with current allMenuItems (search logic is inside renderMenuTable)
-            renderMenuTable(allMenuItems);
+            clearTimeout(filterMenuTimeout);
+            filterMenuTimeout = setTimeout(() => {
+                renderMenuTable(allMenuItems);
+            }, 300);
         }
 
         // --- SHARED UPLOAD HELPER ---
@@ -2378,16 +2450,22 @@
         }
 
         // --- ADMIN PROFILE LOGIC ---
+        let profileUnsubscribe = null;
+
         function loadAdminProfile() {
+            // Prevent duplicate listeners
+            if (profileUnsubscribe) return;
+
             firebase.auth().onAuthStateChanged(user => {
                 if (user) {
-                    db.collection('users').doc(user.uid).onSnapshot(doc => {
+                    if (profileUnsubscribe) profileUnsubscribe();
+
+                    profileUnsubscribe = db.collection('users').doc(user.uid).onSnapshot(doc => {
                         if (doc.exists) {
                             const data = doc.data();
                             const cardName = document.getElementById('dash-name');
                             if (cardName) {
                                 cardName.innerText = data.name || "Admin"; // Fallback
-                                // Remove loading class if any
                             }
 
                             const cardEmail = document.getElementById('dash-email');
@@ -2426,7 +2504,7 @@
             const sentEl = document.getElementById('review-sentiment');
 
             // 1. Check Cache
-            const cacheKey = 'admin_reviews_cache_v3'; // Bumped version for new logic
+            const cacheKey = 'admin_reviews_cache_v4'; // Bumped version for new logic
             const cached = localStorage.getItem(cacheKey);
             const now = new Date().getTime();
 
@@ -2436,6 +2514,7 @@
                 const data = JSON.parse(cached);
                 if (now - data.timestamp < 300000) { // 5 min cache
                     reviews = data.reviews;
+                    window.cachedReviews = reviews; // Expose for CSV
                 }
             }
 
@@ -2455,12 +2534,15 @@
                         const data = doc.data();
                         const feedback = data.feedback || {};
 
+                        // Robust comment extraction
+                        const rawComment = feedback.comment || data.comment || data.feedbackComment || '';
+
                         return {
                             id: doc.id,
                             displayOrderId: data.orderNumber || doc.id,
                             userName: data.customerName || data.userName || data.name || 'Guest',
-                            rating: feedback.rating || 0,
-                            comment: feedback.comment || '',
+                            rating: feedback.rating || data.rating || 0,
+                            comment: String(rawComment).trim(),
                             items: data.items || [],
                             createdAtIso: feedback.createdAt || data.createdAt?.toDate().toISOString() || new Date().toISOString(),
                             isHidden: data.reviewHidden === true
@@ -2475,6 +2557,9 @@
                         timestamp: now,
                         reviews: reviews
                     }));
+
+                    // Expose for CSV
+                    window.cachedReviews = reviews;
 
                 } catch (e) {
                     console.error("Error fetching reviews", e);
@@ -3035,6 +3120,122 @@
                 <span style="font-size: 0.9rem; color: #555;">${text}</span>
             </div>
         `).join('');
+        }
+    </script>
+    <!-- CSV EXPORT LOGIC -->
+    <script>
+        // CSV EXPORT LOGIC (FIXED v2)
+        function exportToCSV(filename, headers, rows) {
+            if (!rows || !rows.length) {
+                alert("No data to export.");
+                return;
+            }
+            const csvContent = [
+                headers.join(","),
+                ...rows.map(row => row.map(item => {
+                    let val = item;
+                    if (val === null || val === undefined) val = '';
+                    val = String(val).replace(/"/g, '""'); // Escape inner quotes
+                    return `"${val}"`;
+                }).join(","))
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAdminHistoryCSV() {
+            // Use cached data
+            if (!window.cachedHistoryOrders) {
+                alert("Order history not loaded. Please switch to Order History tab first.");
+                return;
+            }
+
+            const orders = window.cachedHistoryOrders;
+            if (orders.length === 0) {
+                alert("No order history found to export.");
+                return;
+            }
+
+            const headers = ['Order ID', 'Ordered By', 'Items', 'Status', 'Total', 'Date'];
+
+            const data = orders.map(o => {
+                let displayName = o.customerName || o.userName || o.name || "Guest";
+                if (displayName === "Guest" && o.userId) displayName = "User " + o.userId.slice(0, 6);
+
+                const itemsStr = o.items ? o.items.map(i => `${i.quantity}x ${i.name}`).join(', ') : 'No items';
+
+                let dateStr = '';
+                try {
+                    if (o.createdAt && typeof o.createdAt.toDate === 'function') {
+                        dateStr = o.createdAt.toDate().toLocaleString('sv-SE');
+                    } else if (o.createdAt && o.createdAt.seconds) {
+                        dateStr = new Date(o.createdAt.seconds * 1000).toLocaleString('sv-SE');
+                    } else if (o.createdAt) {
+                        dateStr = new Date(o.createdAt).toLocaleString();
+                    }
+                } catch (e) { console.warn("Date error", e); }
+
+                return [
+                    o.orderNumber || o.id,
+                    displayName,
+                    itemsStr,
+                    o.status,
+                    Number(o.total),
+                    dateStr
+                ];
+            });
+
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            exportToCSV(`admin-order-history-${dateStr}.csv`, headers, data);
+        }
+
+        function downloadReviewsCSV() {
+            if (!window.cachedReviews) {
+                alert("Reviews not loaded. If empty, click Refresh.");
+                return;
+            }
+
+            const reviews = window.cachedReviews;
+            if (reviews.length === 0) {
+                alert("No reviews found to export.");
+                return;
+            }
+
+            const headers = ['Date', 'Order #', 'Customer', 'Rating', 'Comment', 'Items'];
+
+            const data = reviews.map(r => {
+                // Excel-friendly rating: forces text format
+                const ratingStr = `="${r.rating || 0}/5"`;
+
+                // Format date as YYYY-MM-DD HH:mm:ss
+                let dateStr = '';
+                try {
+                    dateStr = new Date(r.createdAtIso).toLocaleString('sv-SE');
+                } catch (e) { dateStr = r.createdAtIso || ''; }
+
+                const itemsStr = r.items ? r.items.map(i => i.name).join(', ') : '';
+
+                return [
+                    dateStr,
+                    r.displayOrderId,
+                    r.userName,
+                    ratingStr,
+                    r.comment || '',
+                    itemsStr
+                ];
+            });
+
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            exportToCSV(`customer-reviews-${dateStr}.csv`, headers, data);
         }
     </script>
 </body>

@@ -220,7 +220,7 @@ function renderMenu() {
         return `
         <div class="meal-card animate-fade-in">
             <div class="meal-img-box">
-                <img src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
+                <img loading="lazy" src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
                     ${isFav ? '❤️' : '🤍'}
                 </button>
@@ -239,9 +239,25 @@ function renderMenu() {
 }
 
 // Search Listener
+let searchTimeout;
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
-    searchInput.addEventListener('input', renderMenu);
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(renderMenu, 300);
+    });
+}
+
+// Quick Search Listener (Debounced)
+let quickSearchTimeout;
+const quickSearchInput = document.getElementById('quickSearchInput');
+// Clean up inline handler if present to avoid double-firing
+if (quickSearchInput) {
+    quickSearchInput.oninput = null;
+    quickSearchInput.addEventListener('input', () => {
+        clearTimeout(quickSearchTimeout);
+        quickSearchTimeout = setTimeout(renderQuickMenu, 300);
+    });
 }
 
 // --- Cart Page Functions ---
@@ -283,7 +299,7 @@ function renderCartPage() {
         const listHtml = items.map(item => `
             <div class="cart-item">
                 <div class="cart-item-info">
-                    <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+                    <img loading="lazy" src="${item.image}" alt="${item.name}" class="cart-item-img">
                     <div>
                         <h4 class="cart-item-title">${item.name}</h4>
                         <span class="cart-item-price">₹${item.price.toFixed(2)}</span>
@@ -440,7 +456,7 @@ function updateSidebarAuthUI(user) {
     }
 }
 
-// --- Profile Logic (Centralized) ---
+// --- Profile Logic (Centralized & Optimized) ---
 
 const AVATARS = [
     "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
@@ -450,105 +466,161 @@ const AVATARS = [
     "https://cdn-icons-png.flaticon.com/512/4140/4140040.png",
     "https://cdn-icons-png.flaticon.com/512/4140/4140039.png"
 ];
-// Default transparent silhouette or generic user icon
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/1077/1077114.png";
+const PROFILE_CACHE_KEY = 'foodly_user_profile_v2'; // Cache Key
+
 let selectedAvatar = "";
 let isProfileMandatory = false;
+let isProfileListenerAttached = false; // Prevent duplicate listeners
 
 function initProfileListener() {
-    // 1. IMMEDIATE LOAD from Cache (Fixes lagging)
-    const cachedAvatar = localStorage.getItem('cachedAvatar');
-    if (cachedAvatar) {
-        updateNavbarAvatar(cachedAvatar);
+    if (isProfileListenerAttached) return; // STRICT SINGLE EXECUTION
+    isProfileListenerAttached = true;
+
+    // 1. FAST RENDER from Session Cache
+    const cachedProfile = sessionStorage.getItem(PROFILE_CACHE_KEY);
+    if (cachedProfile) {
+        try {
+            const profile = JSON.parse(cachedProfile);
+            updateNavbarAvatar(profile.avatar);
+            updateTopNavInfo(profile.name, profile.email);
+            // Don't return, we still might need to auth check, but UI is ready
+        } catch (e) {
+            console.warn("Profile cache parse error", e);
+            sessionStorage.removeItem(PROFILE_CACHE_KEY);
+        }
     }
 
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-            // Initialize Favourites from Cache first
+            // ALWAYS initialize favourites first (separate logic)
             initFavourites(user);
 
-            db.collection('users').doc(user.uid).get().then(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
+            // If we have a robust cache, we can SKIP the Firestore read to save cost/time
+            // UNLESS it's a hard refresh or empty cache.
+            // For safety, we'll do a "Stale-While-Revalidate" approach:
+            // If cache exists, we already showed it. We can optionally fetch in background to sync.
 
-                    // Sync Favourites (And update cache)
-                    if (data.favourites) {
-                        userFavourites = data.favourites;
-                        localStorage.setItem(`foodly_favs_${user.uid}`, JSON.stringify(userFavourites));
-                        // Optimistic update if needed, though initFavourites handled it
-                        if (document.getElementById('menu-grid')) renderMenu();
-                        if (document.getElementById('quick-meals-grid')) renderQuickMenu();
-                    }
-
-                    // Redirect Admin to Admin Panel
-                    if (data.role === 'admin' && !window.location.href.includes('admin.html')) {
-                        window.location.href = 'admin.html';
-                        return;
-                    }
-
-                    // Protect Admin Panel: Kick out non-admins
-                    if (window.location.href.includes('admin.html') && data.role !== 'admin') {
-                        window.location.href = 'menu.html';
-                        return;
-                    }
-
-                    // Update Top Nav Info (Robust Fallback)
-                    // Use Firestore data, or Auth data, or default
-                    const pName = data.name || user.displayName || 'User';
-                    const pEmail = data.email || user.email || '';
-                    updateTopNavInfo(pName, pEmail);
-
-                    // Update Avatar
-                    const pAvatar = data.avatar || user.photoURL || null;
-                    if (pAvatar) {
-                        localStorage.setItem('cachedAvatar', pAvatar);
-                        updateNavbarAvatar(pAvatar);
-                    }
-
-                    // Check if we need to setup profile
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const isSetupUrl = urlParams.get('setupProfile') === 'true';
-                    const missingData = !data.gender || !data.avatar || !data.phoneNumber;
-
-                    if (isSetupUrl || missingData) {
-                        openProfile(true);
-                        if (isSetupUrl) {
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                        }
-                    }
-                } else {
-                    // Doc doesn't exist? Use basic Auth data
-                    updateTopNavInfo(user.displayName || 'User', user.email || '');
-                    if (user.photoURL) updateNavbarAvatar(user.photoURL);
-                }
-            });
+            if (!sessionStorage.getItem(PROFILE_CACHE_KEY)) {
+                fetchUserProfile(user);
+            } else {
+                // Background sync (Optional: Remove if you want STRICT single read per session)
+                // For "STRICT SINGLE READ" requirement: Do NOT fetch again if cached.
+                console.log("Profile loaded from cache.");
+            }
+        } else {
+            // Logout cleanup
+            sessionStorage.removeItem(PROFILE_CACHE_KEY);
+            localStorage.removeItem('cachedAvatar'); // Legacy cleanup
         }
     });
+}
+
+async function fetchUserProfile(user) {
+    try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+            const data = doc.data();
+
+            // Sync Favourites
+            if (data.favourites) {
+                userFavourites = data.favourites;
+                localStorage.setItem(`foodly_favs_${user.uid}`, JSON.stringify(userFavourites));
+                if (document.getElementById('menu-grid')) renderMenu();
+                if (document.getElementById('quick-meals-grid')) renderQuickMenu();
+            }
+
+            // Admin Logic
+            if (data.role === 'admin' && !window.location.href.includes('admin.html')) {
+                window.location.href = 'admin.html';
+                return;
+            }
+            if (window.location.href.includes('admin.html') && data.role !== 'admin') {
+                window.location.href = 'menu.html';
+                return;
+            }
+
+            // Prepare Profile Data Object
+            const profile = {
+                name: data.name || user.displayName || 'Costumer',
+                email: data.email || user.email || '',
+                avatar: data.avatar || user.photoURL || null,
+                role: data.role || 'user',
+                gender: data.gender || '',
+                phoneNumber: data.phoneNumber || ''
+            };
+
+            // Update UI
+            updateTopNavInfo(profile.name, profile.email);
+            if (profile.avatar) {
+                updateNavbarAvatar(profile.avatar);
+            }
+
+            // CACHE IT (Session)
+            sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+
+            // Setup Check
+            const urlParams = new URLSearchParams(window.location.search);
+            const isSetupUrl = urlParams.get('setupProfile') === 'true';
+            const missingData = !data.gender || !data.avatar || !data.phoneNumber;
+
+            if (isSetupUrl || missingData) {
+                openProfile(true);
+                if (isSetupUrl) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
+        } else {
+            // New/No Doc -> Use Auth Defaults
+            const profile = {
+                name: user.displayName || 'Costumer',
+                email: user.email || '',
+                avatar: user.photoURL || null
+            };
+            updateTopNavInfo(profile.name, profile.email);
+            if (profile.avatar) updateNavbarAvatar(profile.avatar);
+            sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+        }
+    } catch (error) {
+        console.error("Profile fetch error:", error);
+    }
 }
 
 function updateNavbarAvatar(url) {
     const finalUrl = url || DEFAULT_AVATAR;
 
-    // Sidebar Avatar
-    const img = document.getElementById('nav-avatar-img');
-    if (img) {
-        img.src = finalUrl;
-        img.style.display = 'block';
-    }
+    const updateImg = (id) => {
+        const img = document.getElementById(id);
+        if (img) {
+            // Only update if changed to prevent flicker
+            if (img.src !== finalUrl) {
+                img.src = finalUrl;
+            }
+            if (img.style.display === 'none') img.style.display = 'block';
 
-    // Top Nav Avatar
-    const topImg = document.getElementById('top-nav-avatar');
-    if (topImg) {
-        topImg.src = finalUrl;
-    }
+            // Optimization: Attributes
+            if (!img.getAttribute('width')) img.setAttribute('width', '40');
+            if (!img.getAttribute('height')) img.setAttribute('height', '40');
+            img.setAttribute('loading', 'lazy');
+        }
+    };
+
+    updateImg('nav-avatar-img');
+    updateImg('top-nav-avatar');
 }
 
 function updateTopNavInfo(name, email) {
     const nameEl = document.getElementById('top-nav-name');
     const emailEl = document.getElementById('top-nav-email');
 
-    if (nameEl) nameEl.innerText = name || 'User';
-    if (emailEl) emailEl.innerText = email || '';
+    // Only update textContent if changed
+    if (nameEl && nameEl.innerText !== (name || 'Costumer')) {
+        nameEl.innerText = name || 'Costumer';
+    }
+    if (emailEl && emailEl.innerText !== (email || '')) {
+        emailEl.innerText = email || '';
+    }
 }
 
 function openProfile(mandatory = false) {
@@ -557,76 +629,54 @@ function openProfile(mandatory = false) {
 
     isProfileMandatory = mandatory;
     const closeBtn = document.querySelector('.close-btn');
-
-    // Manage Close Button visibility based on mandatory flag
-    if (closeBtn) {
-        closeBtn.style.display = mandatory ? 'none' : 'block';
-    }
+    if (closeBtn) closeBtn.style.display = mandatory ? 'none' : 'block';
 
     const modal = document.getElementById('profile-modal');
-    if (!modal) return; // Guard if modal HTML missing on page
+    if (!modal) return;
 
     const grid = document.getElementById('avatar-grid');
-
-    // Populate avatars if empty
     if (grid && grid.children.length === 0) {
         grid.innerHTML = AVATARS.map(url =>
             `<img src="${url}" class="avatar-option" onclick="selectAvatar('${url}')" id="avatar-${url.slice(-8)}">`
         ).join('');
     }
 
-    // Fetch User Data to populate form
-    // Fetch User Data to populate form
-    db.collection('users').doc(user.uid).get().then(doc => {
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.value = val || "";
-        };
+    // Load form data... try cache first, else use Auth/Firestore
+    const cachedRaw = sessionStorage.getItem(PROFILE_CACHE_KEY);
+    let profile = cachedRaw ? JSON.parse(cachedRaw) : {};
 
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || "";
+    };
+
+    setVal('profile-name', profile.name || user.displayName);
+    setVal('profile-email', profile.email || user.email);
+    setVal('profile-phone', profile.phoneNumber || user.phoneNumber);
+    setVal('profile-gender', profile.gender);
+
+    // Avatar Selection Logic
+    if (profile.avatar) {
+        selectAvatar(profile.avatar);
+    } else if (user.photoURL) {
+        selectAvatar(user.photoURL);
+    } else {
+        const preview = document.getElementById('avatar-preview');
+        if (preview) preview.src = DEFAULT_AVATAR;
+        selectedAvatar = "";
+    }
+
+    // If cache was empty/partial, we might want to fetch latest silently? 
+    // But for openProfile, we usually want latest.
+    // Let's rely on fetchUserProfile having run or running.
+    // Use Firestore direct get for EDIT MODE to ensure freshness
+    db.collection('users').doc(user.uid).get().then(doc => {
         if (doc.exists) {
             const data = doc.data();
-            // Sync Favourites
-            if (data.favourites) {
-                userFavourites = data.favourites;
-                // Update Cache
-                localStorage.setItem(`foodly_favs_${user.uid}`, JSON.stringify(userFavourites));
-
-                // Re-render
-                if (document.getElementById('menu-grid')) renderMenu();
-                if (document.getElementById('quick-meals-grid')) renderQuickMenu();
-            }
-
-            setVal('profile-name', data.name || user.displayName);
-            setVal('profile-email', data.email || user.email);
-            setVal('profile-phone', data.phoneNumber || user.phoneNumber);
+            setVal('profile-name', data.name);
+            setVal('profile-phone', data.phoneNumber);
             setVal('profile-gender', data.gender);
-
-            if (data.avatar) {
-                selectAvatar(data.avatar);
-            } else {
-                // Show Auth photo if available, else default
-                if (user.photoURL) {
-                    const preview = document.getElementById('avatar-preview');
-                    if (preview) preview.src = user.photoURL;
-                    selectedAvatar = user.photoURL;
-                    document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
-                } else {
-                    const preview = document.getElementById('avatar-preview');
-                    if (preview) preview.src = DEFAULT_AVATAR;
-                    selectedAvatar = "";
-                }
-            }
-        } else {
-            // New User / No Firestore Doc yet
-            setVal('profile-name', user.displayName);
-            setVal('profile-email', user.email);
-            setVal('profile-phone', user.phoneNumber);
-
-            // Set Default Avatar
-            const preview = document.getElementById('avatar-preview');
-            if (preview) preview.src = DEFAULT_AVATAR;
-            selectedAvatar = "";
-            document.querySelectorAll('.avatar-option').forEach(img => img.classList.remove('selected'));
+            if (data.avatar) selectAvatar(data.avatar);
         }
     });
 
@@ -636,7 +686,6 @@ function openProfile(mandatory = false) {
 
 function closeProfile() {
     if (isProfileMandatory) return;
-
     const modal = document.getElementById('profile-modal');
     if (modal) {
         modal.classList.remove('show');
@@ -648,10 +697,8 @@ function selectAvatar(url) {
     selectedAvatar = url;
     const preview = document.getElementById('avatar-preview');
     if (preview) preview.src = url;
-
     document.querySelectorAll('.avatar-option').forEach(img => {
-        if (img.src === url) img.classList.add('selected');
-        else img.classList.remove('selected');
+        img.classList.toggle('selected', img.src === url);
     });
 }
 
@@ -664,7 +711,7 @@ async function saveProfile() {
     const gender = document.getElementById('profile-gender').value;
 
     if (!name || !phone || !gender) {
-        alert("Please fill in all details (Name, Phone, and Gender).");
+        alert("Please fill in all details.");
         return;
     }
     if (!selectedAvatar) {
@@ -680,32 +727,36 @@ async function saveProfile() {
             avatar: selectedAvatar
         };
 
-        // 1. Sync to Auth Profile (Important for Fallbacks)
-        await user.updateProfile({
-            displayName: name,
-            photoURL: selectedAvatar
-        });
+        // UI Feedback
+        const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
+        const originalText = saveBtn ? saveBtn.innerText : 'Save Profile';
+        if (saveBtn) saveBtn.innerText = "Saving...";
 
-        // 2. Save to Firestore (Merge to create if missing)
+        await user.updateProfile({ displayName: name, photoURL: selectedAvatar });
         await db.collection('users').doc(user.uid).set(newData, { merge: true });
 
+        // Update CACHE immediately
+        const profile = {
+            name: name,
+            email: user.email,
+            avatar: selectedAvatar,
+            gender: gender,
+            phoneNumber: phone,
+            role: 'user' // Assume user unless admin check overrides later
+        };
+        sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
 
-        // Update UI and Cache
         updateNavbarAvatar(selectedAvatar);
         updateTopNavInfo(name, user.email);
-        localStorage.setItem('cachedAvatar', selectedAvatar);
 
-        // EXTRA: Update Dashboard Welcome if on dashboard
         const welcomeEl = document.getElementById('dash-welcome');
-        if (welcomeEl) {
-            const firstName = name.trim().split(/\s+/)[0];
-            welcomeEl.innerText = `Welcome back, ${firstName}!`;
-        }
+        if (welcomeEl) welcomeEl.innerText = `Welcome back, ${name.split(' ')[0]}!`;
 
         isProfileMandatory = false;
         closeProfile();
-        // Optional: nice feedback
-        // alert("Profile updated!"); 
+
+        if (saveBtn) saveBtn.innerText = originalText;
+
     } catch (error) {
         console.error("Error updating profile:", error);
         alert("Failed to update profile.");
@@ -917,7 +968,7 @@ function renderQuickMenu() {
         return `
         <div class="meal-card animate-fade-in">
             <div class="meal-img-box">
-                <img src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
+                <img loading="lazy" src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
                     ${isFav ? '❤️' : '🤍'}
                 </button>

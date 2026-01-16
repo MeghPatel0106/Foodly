@@ -991,8 +991,7 @@ p {
     z-index: 1000;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    /* Align items to the right */
+    /* justify-content: flex-end; REMOVED to allow left alignment */
     padding: 0 30px;
     box-shadow: var(--shadow-sm);
 }
@@ -1001,6 +1000,8 @@ p {
     display: flex;
     align-items: center;
     gap: 20px;
+    margin-left: auto;
+    /* Push to the far right */
 }
 
 /* Language Selector */
@@ -2063,7 +2064,7 @@ input:checked+.slider:before {
     border: 1px solid transparent;
     padding: 10px 20px 10px 48px;
     box-shadow: none;
-    width: 100%;
+    width: 150%;
 }
 
 #navbar-search-slot .search-input:focus {

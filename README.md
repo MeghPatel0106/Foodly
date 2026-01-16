@@ -212,8 +212,14 @@ Foodly-main/
 │   └── style.css
 │
 ├── images/
-│   ├── chip-rating.png
-│   └── logo.png
+│   ├── active_order.png        
+│   ├── analytics.png           
+│   ├── cart.png                
+│   ├── chip-rating.png         
+│   ├── logo.png                
+│   ├── Menu_items.png          
+│   ├── menu.png                
+│   └── user_dashboard.png      
 │
 ├── js/
 │   ├── firebase.js

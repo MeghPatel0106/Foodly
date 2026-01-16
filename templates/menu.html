@@ -110,8 +110,8 @@
             </button>
 
             <!-- Dedicated Slot for Search Bar (Teleported via JS) -->
-            <!-- Positioned in flow to take available width -->
-            <div id="navbar-search-slot" style="display: none; flex-grow: 1; margin: 0 2rem; max-width: 600px;"></div>
+            <!-- Positioned: Fixed width, left aligned (margin-left: auto pushes rest to right) -->
+            <div id="navbar-search-slot" style="display: none; margin-left: 1.5rem; width: 450px;"></div>
 
             <div class="navbar-content-end">
 
@@ -284,6 +284,7 @@
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
         <script>
             const firebaseConfig = {
@@ -379,6 +380,7 @@
 
     </main>
     <script src="../js/translations.js"></script>
+    <script src="../js/fcm_foreground.js"></script>
     <script src="../js/main.js?v=2"></script>
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
