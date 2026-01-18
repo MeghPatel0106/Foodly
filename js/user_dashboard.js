@@ -448,7 +448,8 @@ function showDashboardToast(message) {
         document.head.appendChild(style);
     }
 
-    toast.innerHTML = `<span>✅</span> <span>${message}</span>`;
+    toast.innerHTML = `<span><i data-lucide="check"></i></span> <span>${message}</span>`;
+    lucide.createIcons();
 
     requestAnimationFrame(() => {
         toast.classList.add('show');
@@ -478,7 +479,7 @@ function renderFavHTML(container, items) {
         <div class="fav-card">
             <div class="fav-img-box">
                 <img src="${item.image || item.Image}" alt="${item.name}">
-                <div class="fav-heart-btn">❤️</div>
+                <div class="fav-heart-btn"><i data-lucide="heart" fill="red" class="text-red-500"></i></div>
             </div>
             <div class="fav-info">
                 <h4 class="fav-name" title="${item.name || item.Name}">${item.name || item.Name}</h4>
@@ -491,6 +492,7 @@ function renderFavHTML(container, items) {
             </div>
         </div>
     `}).join('');
+    lucide.createIcons();
 }
 
 
@@ -539,10 +541,11 @@ function renderRecentItems(orders) {
             </div>
             <button class="btn-mini-add" title="Add to Cart"
                 onclick="addToCartWithToast('${item.id}', '${item.name}', ${item.price}, '${item.image}', '${itemType}')">
-                +
+                <i data-lucide="plus"></i>
             </button>
         </div>
     `}).join('');
+    lucide.createIcons();
 
     // Feature Extension: Add "Re-order Complete Order" buttons?
     // User requested "Re-order / Order Again (1-Click)".

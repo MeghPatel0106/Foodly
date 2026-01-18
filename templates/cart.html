@@ -21,6 +21,7 @@
     <title>Your Cart - Foodly</title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .cart-item {
             display: flex;
@@ -130,37 +131,49 @@
         <ul class="user-sidebar-menu">
             <li>
                 <a href="dashboard.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📊</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="layout-dashboard"></i>
+                    </span>
                     Dashboard
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
-                    <span class="user-sidebar-icon">🍽️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="utensils"></i>
+                    </span>
                     Meal
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
-                    <span class="user-sidebar-icon">🍿</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="coffee"></i>
+                    </span>
                     Quick Snacks
                 </a>
             </li>
             <li>
                 <a href="orders.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📦</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="package"></i>
+                    </span>
                     Order
                 </a>
             </li>
             <li>
                 <a href="invoices.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">🧾</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="indian-rupee"></i>
+                    </span>
                     Invoice
                 </a>
             </li>
             <li>
                 <a href="cart.html" class="user-sidebar-link active">
-                    <span class="user-sidebar-icon">🛒</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="shopping-cart"></i>
+                    </span>
                     Cart
                     <span id="cart-count"
                         style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
@@ -168,13 +181,17 @@
             </li>
             <li>
                 <a href="analytics.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📈</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="trending-up"></i>
+                    </span>
                     Analytics
                 </a>
             </li>
             <li>
                 <a href="settings.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">⚙️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="settings"></i>
+                    </span>
                     Setting
                 </a>
             </li>
@@ -184,13 +201,7 @@
 
             <button id="sidebar-auth-btn" class="btn btn-sm text-danger"
                 style="margin-top: 10px; padding-left: 0; color: #ef4444; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;">
-                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2-2v4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
+                <i data-lucide="log-out" width="16" height="16"></i>
                 <span id="sidebar-auth-text">Logout</span>
             </button>
         </div>
@@ -199,7 +210,7 @@
     <main class="user-main-content">
         <nav class="user-top-navbar">
             <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-                ☰
+                <i data-lucide="menu"></i>
             </button>
             <div class="navbar-content-end">
 
@@ -207,7 +218,9 @@
 
                 <!-- Notification Bell -->
                 <div class="notification-icon-wrapper" onclick="toggleNotifications()">
-                    <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                    <span class="icon">
+                        <i data-lucide="bell"></i>
+                    </span>
                     <span class="badge" id="nav-notification-badge" style="display: none;"></span>
                 </div>
 
@@ -229,7 +242,9 @@
             <h1 class="mb-4">Your Cart</h1>
 
             <div id="empty-state">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+                <div style="font-size: 3rem; margin-bottom: 1rem; display: flex; justify-content: center;">
+                    <i data-lucide="shopping-cart" style="width: 48px; height: 48px;"></i>
+                </div>
                 <h3>Your cart is empty</h3>
                 <p class="text-muted">Looks like you haven't added anything yet.</p>
                 <a href="menu.html" class="btn btn-primary" style="margin-top: 1rem;">Browse Menu</a>
@@ -304,7 +319,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <script>
         const firebaseConfig = {
@@ -312,7 +327,7 @@
             authDomain: "foodly-40d16.firebaseapp.com",
             projectId: "foodly-40d16",
             storageBucket: "foodly-40d16.firebasestorage.app",
-            messagingSenderId: "74040922594",
+
             appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
         };
         // Use SAME firebaseConfig as index.html
@@ -324,7 +339,7 @@
         const functions = firebase.functions();
     </script>
     <script src="../js/main.js"></script>
-    <script src="../js/fcm_foreground.js"></script>
+
     <script>
         // STRICT USER PROTECTION
         firebase.auth().onAuthStateChanged(async (user) => {
@@ -525,6 +540,9 @@
                 overlay.classList.toggle('show');
             }
         }
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
     </script>
 </body>
 

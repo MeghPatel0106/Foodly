@@ -50,6 +50,10 @@
       {
         "source": "/404.html",
         "destination": "/templates/404.html"
+      },
+      {
+        "source": "/profile.html",
+        "destination": "/templates/profile.html"
       }
     ]
   }

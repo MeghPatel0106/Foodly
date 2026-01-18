@@ -22,6 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .admin-layout {
             display: grid;
@@ -137,6 +138,147 @@
         .btn-complete {
             background: #d4edda;
             color: #155724;
+        }
+
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            margin-left: 10px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Form Improvements */
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- ADD ITEM FORM STYLES --- */
+        .add-item-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .form-label {
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            height: 42px;
+            /* Align with inputs approx */
+            margin-top: auto;
+        }
+
+        .toggle-group .label-text {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-right: 12px;
+        }
+
+        .form-actions button {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* Desktop Layout */
+        @media (min-width: 992px) {
+            .form-grid {
+                grid-template-columns: 2fr 2fr 1fr 2fr auto;
+                /* Specific naming for columns */
+                align-items: end;
+                /* Align bottoms */
+                gap: 20px;
+            }
+
+            .file-group {
+                min-width: 250px;
+                /* Ensure file input has space for text */
+            }
+
+            .toggle-group {
+                padding-bottom: 5px;
+                /* Adjust alignment to inputs */
+            }
+
+            .form-actions {
+                margin-top: 10px;
+            }
         }
 
         /* Mobile handling for sidebar */
@@ -340,6 +482,19 @@
         .profile-info-value {
             font-weight: 600;
             color: var(--dark-color);
+        }
+
+        /* Profile Details Grid (Override for Profile Tab) */
+        .profile-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-details-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* --- ANALYTICS DASHBOARD STYLES --- */
@@ -690,18 +845,30 @@
                     style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
             </div>
             <nav class="sidebar-menu">
-                <button class="active" onclick="switchTab('active-orders')">📌 Active Orders</button>
-                <button onclick="switchTab('order-history')">📜 Order History</button>
+                <button class="active" onclick="switchTab('active-orders')">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </button>
+                <button onclick="switchTab('order-history')">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </button>
                 <button onclick="switchTab('analytics')">
-                    <span class="icon">📊</span> Analytics
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
                 </button>
                 <button onclick="switchTab('reviews')">
-                    <span class="icon">⭐</span> Reviews
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
                 </button>
-                <button onclick="switchTab('menu')">🍔 Menu Items</button>
-                <button onclick="switchTab('profile')">👤 Profile</button>
-                <button onclick="switchTab('settings')">⚙️ Settings</button>
-                <button onclick="logout()">🚪 Logout</button>
+                <button onclick="switchTab('menu')">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </button>
+                <button onclick="switchTab('profile')">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </button>
+                <button onclick="switchTab('settings')">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </button>
+                <button onclick="logout()">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </button>
             </nav>
         </aside>
 
@@ -709,7 +876,7 @@
             <!-- Mobile Hamburger Button -->
             <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
                 style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
-                ☰
+                <i data-lucide="menu"></i>
             </button>
 
             <!-- Stats -->
@@ -833,36 +1000,60 @@
                     </div>
                 </div>
 
-                <!-- Add Menu Item Form -->
                 <div class="card mb-4"
-                    style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Add New Item</h3>
-                    <form onsubmit="addMenuItem(event)"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                        <input type="text" id="itemName" placeholder="Item Name" required
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <select id="itemCategory" required
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                            <option value="" disabled selected>Select Category</option>
-                            <option value="punjabi">Punjabi</option>
-                            <option value="chinese">Chinese</option>
-                            <option value="indian_snack">Snacks</option>
-                            <option value="fast_food">Fast Food</option>
-                            <option value="drinks">Drinks</option>
-                            <option value="packets">Packets</option>
-                        </select>
-                        <input type="number" id="itemPrice" placeholder="Price (₹)" step="0.01" required
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <input type="text" id="itemImage" placeholder="Image URL (or select file below)"
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <input type="file" id="newItemFile" accept="image/*"
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="itemAvailable" checked>
-                            <label for="itemAvailable">Available</label>
+                    style="background: white; padding: 25px; border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid #e2e8f0;">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--dark-color); font-weight: 700;">
+                        Add New Item</h3>
+
+                    <form onsubmit="addMenuItem(event)" class="add-item-form">
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" id="itemName" class="form-input" placeholder="e.g. Chicken Burger"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select id="itemCategory" class="form-input" required style="background-color: white;">
+                                    <option value="" disabled selected>Select Category</option>
+                                    <option value="punjabi">Punjabi</option>
+                                    <option value="chinese">Chinese</option>
+                                    <option value="indian_snack">Snacks</option>
+                                    <option value="fast_food">Fast Food</option>
+                                    <option value="drinks">Drinks</option>
+                                    <option value="packets">Packets</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group price-group">
+                                <label class="form-label">Price (₹)</label>
+                                <input type="number" id="itemPrice" class="form-input" placeholder="0.00" step="0.01"
+                                    required>
+                            </div>
+
+                            <div class="form-group file-group">
+                                <label class="form-label">Item Image</label>
+                                <input type="file" id="newItemFile" accept="image/*" class="form-input"
+                                    style="padding: 7px;">
+                            </div>
+
+                            <div class="form-group toggle-group">
+                                <span class="label-text">Available</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="itemAvailable" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
                         </div>
-                        <button type="submit" id="btnAddItem" class="btn-ready"
-                            style="border: none; cursor: pointer; font-weight: 600;">Add Item</button>
+
+                        <div class="form-actions">
+                            <button type="submit" id="btnAddItem" class="btn-primary">
+                                Add Item
+                            </button>
+                        </div>
+
                     </form>
                 </div>
 
@@ -893,14 +1084,7 @@
                 <div class="card"
                     style="background: white; padding: 25px; border-radius: var(--radius-lg); border: 1px solid #fee2e2;">
                     <h3 style="color: #dc2626; display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
-                            </path>
-                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                        </svg>
+                        <i data-lucide="alert-triangle" color="#dc2626"></i>
                         Danger Zone
                     </h3>
                     <p class="text-muted" style="margin-bottom: 2rem;">
@@ -1129,34 +1313,81 @@
 
             <!-- PROFILE TAB -->
             <div id="tab-profile" style="display: none;">
-                <div class="section-title">
-                    <h2>Admin Profile</h2>
-                </div>
-                <div class="profile-card-display" id="dashboard-profile-card">
-                    <img id="dash-avatar" src="https://via.placeholder.com/80" alt="Avatar">
-                    <h2 id="dash-name" style="margin-bottom: 5px; margin-top: 1rem;">Loading...</h2>
-                    <p id="dash-role" class="text-muted" style="margin-bottom: 20px; text-transform: capitalize;">Admin
-                    </p>
-
-                    <div style="max-width: 400px; margin: 0 auto;">
-                        <div class="profile-info-row">
-                            <span class="profile-info-label">Email</span>
-                            <span class="profile-info-value" id="dash-email">-</span>
-                        </div>
-                        <div class="profile-info-row">
-                            <span class="profile-info-label">Phone</span>
-                            <span class="profile-info-value" id="dash-phone">-</span>
-                        </div>
-                        <div class="profile-info-row">
-                            <span class="profile-info-label">Gender</span>
-                            <span class="profile-info-value" id="dash-gender">-</span>
+                <div class="container animate-fade-in" style="margin-top: 1rem;">
+                    <!-- Profile Header Card -->
+                    <div class="profile-header-card">
+                        <div class="profile-cover"></div>
+                        <div class="profile-content">
+                            <div class="avatar-upload-wrapper">
+                                <img id="profile-page-avatar"
+                                    src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profile Avatar">
+                                <button class="avatar-edit-btn" onclick="triggerAvatarUpload()">
+                                    <i data-lucide="camera" width="18" height="18"></i>
+                                </button>
+                                <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;"
+                                    onchange="handleAvatarUpload(this)">
+                            </div>
+                            <div class="profile-text">
+                                <h1 id="profile-page-name">User Name</h1>
+                                <p class="text-muted" id="profile-page-role">Foodly Member</p>
+                            </div>
                         </div>
                     </div>
 
-                    <button class="btn btn-primary action-btn" onclick="openProfile()"
-                        style="margin-top: 2rem; width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; font-size: 1rem;">
-                        Edit Profile
-                    </button>
+                    <!-- Stats Grid -->
+                    <!-- Stats Grid Removed as per request (Redundant with Dashboard) -->
+
+                    <div class="profile-layout-grid">
+                        <!-- Edit Details Form -->
+                        <div class="profile-form-card">
+                            <div class="section-header">
+                                <h3>Personal Details</h3>
+                                <button class="btn btn-primary" onclick="saveProfilePage()">Save Changes</button>
+                            </div>
+
+                            <div class="profile-details-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" id="page-profile-name" class="form-input"
+                                        placeholder="Your Name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" id="page-profile-email" class="form-input" disabled
+                                        style="background: #f8f9fa; cursor: not-allowed;">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" id="page-profile-phone" class="form-input"
+                                        placeholder="Enter phone number"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Gender</label>
+                                    <select id="page-profile-gender" class="form-input">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Avatar Selection Grid -->
+                        <div class="avatar-selection-card">
+                            <h3>Choose Avatar</h3>
+                            <p class="text-muted text-sm" style="margin-bottom: 1rem;">Or upload your own photo above
+                            </p>
+                            <div class="avatar-grid" id="page-avatar-grid">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -1229,7 +1460,13 @@
         // Stub foodItems for main.js
         window.foodItems = [];
     </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
@@ -1897,9 +2134,13 @@
         }
 
         function updateStats(orders) {
-            const total = orders.length;
-            const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-            // Pending: Either status is 'Pending', missing, or 'Preparing'
+            // FIX: Only count COMPLETED orders for Total Orders & Revenue to match Analytics Overview
+            const completedOrders = orders.filter(o => o.status === 'Completed');
+
+            const total = completedOrders.length;
+            const revenue = completedOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+            // Pending still needs to check checks all orders for active status
             const pending = orders.filter(o => !o.status || o.status === 'Pending' || o.status === 'Preparing').length;
 
             document.getElementById('stats-orders').innerText = total;
@@ -1978,7 +2219,7 @@
             } else if (tabId === 'profile') {
                 loadAdminProfile();
             } else if (tabId === 'reviews') {
-                renderReviews();
+                renderReviews(true);
             }
 
             // Update Active State in Sidebar
@@ -2093,52 +2334,56 @@
         }
 
         // --- SHARED UPLOAD HELPER ---
-        // --- SHARED UPLOAD HELPER (Base64 Strategy to bypass CORS) ---
+        // --- SHARED UPLOAD HELPER (Firebase Storage Strategy) ---
         async function uploadImageToFirebase(file) {
             return new Promise((resolve, reject) => {
-                // 1. Validate Type
-                if (!file.type.startsWith('image/')) {
-                    reject(new Error("Please upload an image file (JPG/PNG)."));
+                // 1. Validate File
+                if (!file) {
+                    reject(new Error("No file provided."));
                     return;
                 }
 
-                // 2. Validate Size (Pre-compression)
-                if (file.size > 2 * 1024 * 1024) {
-                    console.warn("Large file detected, aggressive compression will be applied.");
+                // 2. Validate Type (optional strictness)
+                if (!file.type.match('image.*')) {
+                    reject(new Error("Select a valid image file."));
+                    return;
                 }
 
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
+                console.log("Starting upload for: " + file.name);
 
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
+                // 3. Create Reference
+                // Use a clean filename to avoid path issues
+                const timestamp = Date.now();
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+                const path = 'items/' + timestamp + "_" + cleanName;
 
-                    img.onload = () => {
-                        // 3. Compress using Canvas
-                        const canvas = document.createElement('canvas');
-                        // Limit resolution to 600px width to keep string size manageable for Firestore
-                        const MAX_WIDTH = 600;
-                        const scaleSize = MAX_WIDTH / img.width;
+                const storageRef = firebase.storage().ref().child(path);
 
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
+                // 4. Upload
+                const uploadTask = storageRef.put(file);
 
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                        // 4. Convert to Base64 (JPEG 0.6 quality)
-                        // This consistently produces strings < 100KB, well within Firestore limits
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                        console.log("Image processed. New size: " + Math.round(compressedDataUrl.length / 1024) + "KB");
-
-                        resolve(compressedDataUrl);
-                    };
-
-                    img.onerror = (err) => reject(new Error("Failed to load image for processing."));
-                };
-
-                reader.onerror = (error) => reject(new Error("File reading failed."));
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Progress
+                        const percentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + percentage + '% done');
+                    },
+                    (error) => {
+                        // Error
+                        console.error("Firebase Storage Error:", error);
+                        reject(error);
+                    },
+                    () => {
+                        // Success
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            resolve(downloadURL);
+                        }).catch(err => {
+                            console.error("Failed to get download URL:", err);
+                            reject(err);
+                        });
+                    }
+                );
             });
         }
 
@@ -2151,15 +2396,22 @@
             const name = document.getElementById('itemName').value;
             const category = document.getElementById('itemCategory').value;
             const price = parseFloat(document.getElementById('itemPrice').value);
-            let image = document.getElementById('itemImage').value; // URL input
+            let image = ""; // URL input removed
             const fileInput = document.getElementById('newItemFile');
             const available = document.getElementById('itemAvailable').checked;
 
             try {
-                // Priority: File Upload > URL Input
+                // Priority: File Upload
                 if (fileInput && fileInput.files.length > 0) {
                     if (btn) btn.innerText = "Uploading Image...";
-                    image = await uploadImageToFirebase(fileInput.files[0]);
+                    try {
+                        image = await uploadImageToFirebase(fileInput.files[0]);
+                        console.log("Image uploaded successfully: " + image);
+                    } catch (uploadErr) {
+                        console.error("Upload failed inside addMenuItem:", uploadErr);
+                        alert("Image upload failed! Item will not be added. " + uploadErr.message);
+                        throw uploadErr; // Stop execution
+                    }
                 }
 
                 // Adaptive keys based on collection
@@ -2222,7 +2474,7 @@
                 <td>
                     <div style="display:flex; flex-direction:column; gap:5px;">
                         <input type="text" id="edit-name-${id}" value="${item.Name || item.name}" placeholder="Name" style="padding:4px; border:1px solid #ccc; border-radius:4px; width:100%;">
-                        <input type="text" id="edit-image-${id}" value="${item.Image || item.image}" placeholder="Image URL" style="padding:4px; border:1px solid #ccc; border-radius:4px; width:100%; font-size: 0.8em;">
+                        <!-- URL Input Removed -->
                         <input type="file" id="edit-file-${id}" accept="image/*" style="font-size: 0.8em;">
                     </div>
                 </td>
@@ -2244,7 +2496,9 @@
 
         async function saveEdit(id) {
             const name = document.getElementById(`edit-name-${id}`).value;
-            let image = document.getElementById(`edit-image-${id}`).value;
+            // Get existing image logic
+            const item = allMenuItems.find(i => i.id === id);
+            let image = item ? (item.Image || item.image) : '';
             const price = parseFloat(document.getElementById(`edit-price-${id}`).value);
             const fileInput = document.getElementById(`edit-file-${id}`);
 
@@ -2264,6 +2518,22 @@
                 // Handle File Upload if selected
                 if (fileInput && fileInput.files.length > 0) {
                     if (saveBtn) saveBtn.innerText = "Uploading...";
+
+                    // 1. Delete Old Image if exists
+                    const oldImageUrl = item.Image || item.image;
+                    if (oldImageUrl && oldImageUrl.includes('firebasestorage')) {
+                        console.log("Attempting to delete old image...");
+                        try {
+                            const oldRef = firebase.storage().refFromURL(oldImageUrl);
+                            await oldRef.delete();
+                            console.log("Old image deleted successfully.");
+                        } catch (deleteErr) {
+                            console.warn("Failed to delete old image (might not exist or different path):", deleteErr);
+                            // Proceed anyway - don't block the new upload
+                        }
+                    }
+
+                    // 2. Upload New Image
                     image = await uploadImageToFirebase(fileInput.files[0]);
                 }
 
@@ -2450,45 +2720,17 @@
         }
 
         // --- ADMIN PROFILE LOGIC ---
-        let profileUnsubscribe = null;
+        // Replaced by User Panel Logic (initProfilePage from main.js)
 
         function loadAdminProfile() {
-            // Prevent duplicate listeners
-            if (profileUnsubscribe) return;
-
             firebase.auth().onAuthStateChanged(user => {
                 if (user) {
-                    if (profileUnsubscribe) profileUnsubscribe();
-
-                    profileUnsubscribe = db.collection('users').doc(user.uid).onSnapshot(doc => {
-                        if (doc.exists) {
-                            const data = doc.data();
-                            const cardName = document.getElementById('dash-name');
-                            if (cardName) {
-                                cardName.innerText = data.name || "Admin"; // Fallback
-                            }
-
-                            const cardEmail = document.getElementById('dash-email');
-                            if (cardEmail) cardEmail.innerText = data.email || user.email;
-
-                            const cardPhone = document.getElementById('dash-phone');
-                            if (cardPhone) cardPhone.innerText = data.phoneNumber || "Not set";
-
-                            const cardGender = document.getElementById('dash-gender');
-                            if (cardGender) cardGender.innerText = data.gender || "Not set";
-
-                            const avatar = data.avatar || "https://cdn-icons-png.flaticon.com/512/1077/1077114.png";
-                            const cardAvatar = document.getElementById('dash-avatar');
-                            if (cardAvatar) {
-                                cardAvatar.src = avatar;
-                                cardAvatar.onerror = function () { this.src = "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"; };
-                            }
-                        }
-                    }, error => {
-                        console.error("Profile load error", error);
-                        const cardName = document.getElementById('dash-name');
-                        if (cardName) cardName.innerText = "Error loading profile";
-                    });
+                    // Initialize the Profile UI (from main.js)
+                    if (typeof initProfilePage === 'function') {
+                        initProfilePage(user);
+                    } else {
+                        console.error("initProfilePage not found in main.js");
+                    }
                 }
             });
         }
@@ -2504,7 +2746,7 @@
             const sentEl = document.getElementById('review-sentiment');
 
             // 1. Check Cache
-            const cacheKey = 'admin_reviews_cache_v4'; // Bumped version for new logic
+            const cacheKey = 'admin_reviews_cache_v5'; // Bumped to v5 to FORCE refresh
             const cached = localStorage.getItem(cacheKey);
             const now = new Date().getTime();
 
@@ -2512,9 +2754,9 @@
 
             if (!forceRefresh && cached) {
                 const data = JSON.parse(cached);
-                if (now - data.timestamp < 300000) { // 5 min cache
+                if (now - data.timestamp < 30000) { // 30 sec cache
                     reviews = data.reviews;
-                    window.cachedReviews = reviews; // Expose for CSV
+                    window.cachedReviews = reviews;
                 }
             }
 
@@ -2524,32 +2766,73 @@
                 empty.style.display = 'none';
 
                 try {
-                    // Fetch directly from orders where feedback exists
-                    // Note: Sorting client-side to avoid index creation requirements for now
-                    const snap = await db.collection('orders')
-                        .where('feedbackSubmitted', '==', true)
-                        .get();
+                    // Fetch recent COMPLETED orders
+                    // AND fetch order_feedback collection
+                    const [snap, androidSnap] = await Promise.all([
+                        db.collection('orders').where('status', '==', 'Completed').limit(500).get(),
+                        db.collection('order_feedback').get()
+                    ]);
+
+                    // Map Android feedback
+                    const androidMap = {};
+                    if (androidSnap) {
+                        androidSnap.forEach(d => {
+                            const val = d.data();
+                            // console.log("Android Feedback Found:", val); // Debug
+                            if (val.orderId) androidMap[val.orderId] = val;
+                            if (val.orderNumber) androidMap[val.orderNumber] = val;
+                        });
+                    }
 
                     reviews = snap.docs.map(doc => {
                         const data = doc.data();
                         const feedback = data.feedback || {};
+                        const orderId = data.orderNumber || doc.id;
+
+                        // 1. Try Web Data
+                        let rating = feedback.rating || data.rating || 0;
+                        let comment = feedback.comment || data.comment || data.feedbackComment || '';
+                        let createdAt = feedback.createdAt || data.createdAt?.toDate().toISOString() || new Date().toISOString();
+
+                        // 2. Fallback to Android Data
+                        if (androidMap[orderId]) {
+                            const ad = androidMap[orderId];
+
+                            // Check multiple possible field names for rating
+                            const adRating = ad.rating || ad.stars || ad.score || ad.rate || 0;
+                            if (adRating > 0) rating = adRating;
+
+                            // Check multiple possible field names for display text
+                            const adComment = ad.comment || ad.review || ad.text || ad.message || ad.feedback || '';
+                            if (adComment) comment = adComment;
+
+                            // Try to get Timestamp
+                            if (ad.createdAt) {
+                                try {
+                                    const adDate = ad.createdAt.toDate ? ad.createdAt.toDate() : new Date(ad.createdAt);
+                                    if (!isNaN(adDate.getTime())) createdAt = adDate.toISOString();
+                                } catch (e) { }
+                            }
+                        }
 
                         // Robust comment extraction
-                        const rawComment = feedback.comment || data.comment || data.feedbackComment || '';
+                        const rawComment = comment;
 
                         return {
                             id: doc.id,
-                            displayOrderId: data.orderNumber || doc.id,
+                            displayOrderId: orderId,
                             userName: data.customerName || data.userName || data.name || 'Guest',
-                            rating: feedback.rating || data.rating || 0,
+                            rating: parseInt(rating) || 0,
                             comment: String(rawComment).trim(),
                             items: data.items || [],
-                            createdAtIso: feedback.createdAt || data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+                            createdAtIso: createdAt,
                             isHidden: data.reviewHidden === true
                         };
-                    });
+                    })
+                        // FILTER: Only keep actual reviews (rating > 0 or comment exists)
+                        .filter(r => r.rating > 0 || r.comment.length > 0);
 
-                    // Sort Descending by Date
+                    // Sort Descending by Date (Client-side sort is safe)
                     reviews.sort((a, b) => new Date(b.createdAtIso) - new Date(a.createdAtIso));
 
                     // Cache
@@ -2812,6 +3095,7 @@
 
             const kpiOrderTrend = document.getElementById('kpi-orders-trend');
             if (kpiOrderTrend) kpiOrderTrend.innerHTML = formatTrend(orderTrend, 'vs last mo');
+            lucide.createIcons();
         }
 
         function calculateTrend(curr, prev) {
@@ -2821,8 +3105,8 @@
 
         function formatTrend(percent, label) {
             const color = percent >= 0 ? '#28a745' : '#dc3545';
-            const arrow = percent >= 0 ? '↑' : '↓';
-            return `<span style="color: ${color}; font-weight: bold;">${arrow} ${Math.abs(percent.toFixed(1))}%</span> ${label}`;
+            const arrow = percent >= 0 ? '<i data-lucide="arrow-up" style="width:14px; height:14px;"></i>' : '<i data-lucide="arrow-down" style="width:14px; height:14px;"></i>';
+            return `<span style="color: ${color}; font-weight: bold; display: inline-flex; align-items: center; gap: 2px;">${arrow} ${Math.abs(percent.toFixed(1))}%</span> ${label}`;
         }
 
         function formatNumber(num) {
@@ -3079,9 +3363,9 @@
             let peakH = hours.indexOf(maxOrder);
 
             if (maxOrder > 0) {
-                if (peakH >= 11 && peakH <= 14) insights.push("🔥 Lunch hours (11AM-2PM) see the highest traffic. Ensure staff is ready.");
-                else if (peakH >= 17 && peakH <= 20) insights.push("🌇 Evening snacks drive your peak sales.");
-                else insights.push(`⏰ Peak activity detected around ${peakH}:00.`);
+                if (peakH >= 11 && peakH <= 14) insights.push({ icon: 'flame', text: "Lunch hours (11AM-2PM) see the highest traffic. Ensure staff is ready." });
+                else if (peakH >= 17 && peakH <= 20) insights.push({ icon: 'sunset', text: "Evening snacks drive your peak sales." });
+                else insights.push({ icon: 'clock', text: `Peak activity detected around ${peakH}:00.` });
             }
 
             // 2. Slow Day Insight
@@ -3092,7 +3376,7 @@
             const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
             if (orders.length > 10 && dayCounts[minDay] < (orders.length / 7) * 0.5) {
-                insights.push(`📉 ${dayNames[minDay]}s have very low orders. Consider running a "Happy Hour" promo.`);
+                insights.push({ icon: 'trending-down', text: `${dayNames[minDay]}s have very low orders. Consider running a "Happy Hour" promo.` });
             }
 
             // 3. Revenue Driver
@@ -3108,18 +3392,19 @@
                 });
             });
 
-            if (snackCount > mealCount * 1.5) insights.push("🍿 Snacks are outselling meals significantly. Consider adding more combo snack options.");
-            if (mealCount > snackCount * 2) insights.push("🍽️ Full meals are your core driver. Focus on upsizing meal portions.");
+            if (snackCount > mealCount * 1.5) insights.push({ icon: 'coffee', text: "Snacks are outselling meals significantly. Consider adding more combo snack options." });
+            if (mealCount > snackCount * 2) insights.push({ icon: 'utensils', text: "Full meals are your core driver. Focus on upsizing meal portions." });
 
             // Fallback
-            if (insights.length === 0) insights.push("✅ Operations look steady. Keep monitoring trends!");
+            if (insights.length === 0) insights.push({ icon: 'check-circle', text: "Operations look steady. Keep monitoring trends!" });
 
-            container.innerHTML = insights.map(text => `
+            container.innerHTML = insights.map(item => `
             <div class="insight-item" style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                <span style="font-size: 1.2rem;">💡</span>
-                <span style="font-size: 0.9rem; color: #555;">${text}</span>
+                <span class="text-primary"><i data-lucide="${item.icon}"></i></span>
+                <span style="font-size: 0.9rem; color: #555;">${item.text}</span>
             </div>
         `).join('');
+            lucide.createIcons();
         }
     </script>
     <!-- CSV EXPORT LOGIC -->

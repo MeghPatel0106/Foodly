@@ -108,7 +108,8 @@ function addToCart(itemId, name, price, image, type = 'meal') {
     const btn = document.querySelector(`button[onclick="addToCart('${itemId}')"]`);
     if (btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✓';
+        btn.innerHTML = '<i data-lucide="check"></i>';
+        lucide.createIcons();
         btn.style.backgroundColor = 'var(--success-color)';
         btn.style.color = 'white';
         setTimeout(() => {
@@ -222,7 +223,7 @@ function renderMenu() {
             <div class="meal-img-box">
                 <img loading="lazy" src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
-                    ${isFav ? '❤️' : '🤍'}
+                    ${isFav ? '<i data-lucide="heart" fill="red" class="text-red-500" style="color: red;"></i>' : '<i data-lucide="heart"></i>'}
                 </button>
             </div>
             <div class="meal-info">
@@ -236,6 +237,7 @@ function renderMenu() {
             </div>
         </div>
     `}).join('');
+    lucide.createIcons();
 }
 
 // Search Listener
@@ -435,7 +437,7 @@ function logout() {
 function updateSidebarAuthUI(user) {
     const authBtn = document.getElementById('sidebar-auth-btn');
     const authText = document.getElementById('sidebar-auth-text');
-    const authIcon = document.getElementById('sidebar-auth-icon');
+    // const authIcon = document.getElementById('sidebar-auth-icon'); // ID removed in refactor
 
     if (!authBtn) return;
 
@@ -445,14 +447,39 @@ function updateSidebarAuthUI(user) {
         authBtn.onclick = logout;
         authBtn.classList.add('text-danger');
         authBtn.style.color = '#ef4444';
-        if (authIcon) authIcon.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>';
+
+        const existingIcon = authBtn.querySelector('svg, i[data-lucide]');
+        if (existingIcon) {
+            const newIcon = document.createElement('i');
+            newIcon.setAttribute('data-lucide', 'log-out');
+            newIcon.setAttribute('width', '16');
+            newIcon.setAttribute('height', '16');
+            existingIcon.replaceWith(newIcon);
+            lucide.createIcons();
+        } else {
+            // Fallback if no icon found
+            authBtn.insertAdjacentHTML('afterbegin', '<i data-lucide="log-out" width="16" height="16"></i>');
+            lucide.createIcons();
+        }
     } else {
         // GUEST: Show Login
         if (authText) authText.innerText = "Login";
         authBtn.onclick = () => window.location.href = 'index.html';
         authBtn.classList.remove('text-danger');
         authBtn.style.color = 'var(--primary-color)';
-        if (authIcon) authIcon.innerHTML = '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line>';
+
+        const existingIcon = authBtn.querySelector('svg, i[data-lucide]');
+        if (existingIcon) {
+            const newIcon = document.createElement('i');
+            newIcon.setAttribute('data-lucide', 'log-in');
+            newIcon.setAttribute('width', '16');
+            newIcon.setAttribute('height', '16');
+            existingIcon.replaceWith(newIcon);
+            lucide.createIcons();
+        } else {
+            authBtn.insertAdjacentHTML('afterbegin', '<i data-lucide="log-in" width="16" height="16"></i>');
+            lucide.createIcons();
+        }
     }
 }
 
@@ -627,139 +654,232 @@ function openProfile(mandatory = false) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    isProfileMandatory = mandatory;
-    const closeBtn = document.querySelector('.close-btn');
-    if (closeBtn) closeBtn.style.display = mandatory ? 'none' : 'block';
-
-    const modal = document.getElementById('profile-modal');
-    if (!modal) return;
-
-    const grid = document.getElementById('avatar-grid');
-    if (grid && grid.children.length === 0) {
-        grid.innerHTML = AVATARS.map(url =>
-            `<img src="${url}" class="avatar-option" onclick="selectAvatar('${url}')" id="avatar-${url.slice(-8)}">`
-        ).join('');
-    }
-
-    // Load form data... try cache first, else use Auth/Firestore
-    const cachedRaw = sessionStorage.getItem(PROFILE_CACHE_KEY);
-    let profile = cachedRaw ? JSON.parse(cachedRaw) : {};
-
-    const setVal = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.value = val || "";
-    };
-
-    setVal('profile-name', profile.name || user.displayName);
-    setVal('profile-email', profile.email || user.email);
-    setVal('profile-phone', profile.phoneNumber || user.phoneNumber);
-    setVal('profile-gender', profile.gender);
-
-    // Avatar Selection Logic
-    if (profile.avatar) {
-        selectAvatar(profile.avatar);
-    } else if (user.photoURL) {
-        selectAvatar(user.photoURL);
+    if (mandatory) {
+        window.location.href = 'profile.html?setupProfile=true';
     } else {
-        const preview = document.getElementById('avatar-preview');
-        if (preview) preview.src = DEFAULT_AVATAR;
-        selectedAvatar = "";
+        window.location.href = 'profile.html';
     }
-
-    // If cache was empty/partial, we might want to fetch latest silently? 
-    // But for openProfile, we usually want latest.
-    // Let's rely on fetchUserProfile having run or running.
-    // Use Firestore direct get for EDIT MODE to ensure freshness
-    db.collection('users').doc(user.uid).get().then(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            setVal('profile-name', data.name);
-            setVal('profile-phone', data.phoneNumber);
-            setVal('profile-gender', data.gender);
-            if (data.avatar) selectAvatar(data.avatar);
-        }
-    });
-
-    modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('show'), 10);
 }
 
 function closeProfile() {
-    if (isProfileMandatory) return;
+    // Deprecated for new page, keeping for legacy modal safety
     const modal = document.getElementById('profile-modal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => modal.style.display = 'none', 300);
-    }
+    if (modal) modal.style.display = 'none';
 }
 
 function selectAvatar(url) {
     selectedAvatar = url;
-    const preview = document.getElementById('avatar-preview');
-    if (preview) preview.src = url;
+
+    // Update Profile Page if active
+    const pagePreview = document.getElementById('profile-page-avatar');
+    if (pagePreview) pagePreview.src = url;
+
+    // Update Modal (Legacy or Admin)
+    const modalPreview = document.getElementById('avatar-preview');
+    if (modalPreview) modalPreview.src = url;
+
     document.querySelectorAll('.avatar-option').forEach(img => {
         img.classList.toggle('selected', img.src === url);
     });
 }
 
-async function saveProfile() {
+function triggerAvatarUpload() {
+    document.getElementById('avatar-upload-input').click();
+}
+
+function handleAvatarUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    const name = document.getElementById('profile-name').value;
-    const phone = document.getElementById('profile-phone').value;
-    const gender = document.getElementById('profile-gender').value;
+    // Show loading state on image
+    const preview = document.getElementById('profile-page-avatar');
+    const statusMsg = document.getElementById('profile-upload-status');
+    const originalSrc = preview.src;
+    preview.style.opacity = '0.5';
+    if (statusMsg) statusMsg.style.display = 'block';
+
+    // 1. Try Firebase Storage
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(`users/${user.uid}/profile_${Date.now()}.jpg`);
+
+    fileRef.put(file).then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+    }).then(url => {
+        selectAvatar(url);
+        preview.style.opacity = '1';
+        if (statusMsg) statusMsg.style.display = 'none';
+    }).catch(error => {
+        console.warn("Storage upload failed, attempting local fallback:", error);
+
+        // 2. Fallback: Client-side resize & base64
+        // This handles cases where Storage Rules deny access or CORS fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_SIZE = 250; // Keep small for Firestore (limit 1MB doc size)
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                selectAvatar(dataUrl);
+                preview.style.opacity = '1';
+                if (statusMsg) statusMsg.style.display = 'none';
+
+                // Inform user of fallback success
+                console.log("Image processed locally due to storage error: " + error.message);
+            };
+            img.onerror = () => {
+                alert("Failed to process image.");
+                preview.src = originalSrc;
+                preview.style.opacity = '1';
+                if (statusMsg) statusMsg.style.display = 'none';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function initProfilePage(user) {
+    if (!document.getElementById('profile-page-name')) return;
+
+    // Load Stats
+    // Load Stats - Robust (Checks existence first)
+    const ordersSnap = await db.collection('orders').where('userId', '==', user.uid).get();
+    const statOrders = document.getElementById('stat-total-orders');
+    if (statOrders) statOrders.innerText = ordersSnap.size;
+
+    const favCount = userFavourites.length; // populated by initFavourites
+    const statFav = document.getElementById('stat-favourites');
+    if (statFav) statFav.innerText = favCount;
+
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const data = userDoc.exists ? userDoc.data() : {};
+
+    if (data.createdAt) {
+        const date = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+        const statJoined = document.getElementById('stat-joined');
+        if (statJoined) statJoined.innerText = "Since " + date.getFullYear();
+    }
+
+    // Populate Form
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || "";
+    };
+
+    // Header
+    document.getElementById('profile-page-name').innerText = data.name || user.displayName || 'User';
+    document.getElementById('profile-page-role').innerText = (data.role || 'Member').toUpperCase();
+    document.getElementById('profile-page-avatar').src = data.avatar || user.photoURL || DEFAULT_AVATAR;
+
+    // Form
+    setVal('page-profile-name', data.name || user.displayName);
+    setVal('page-profile-email', user.email); // Read only from Auth
+    setVal('page-profile-phone', data.phoneNumber || user.phoneNumber);
+    setVal('page-profile-gender', data.gender);
+
+    selectedAvatar = data.avatar || user.photoURL || DEFAULT_AVATAR;
+
+    // Populate Grid
+    const grid = document.getElementById('page-avatar-grid');
+    if (grid) {
+        grid.innerHTML = AVATARS.map(url =>
+            `<img src="${url}" class="avatar-option ${url === selectedAvatar ? 'selected' : ''}" onclick="selectAvatar('${url}')">`
+        ).join('');
+    }
+}
+
+async function saveProfilePage() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const name = document.getElementById('page-profile-name').value;
+    const phone = document.getElementById('page-profile-phone').value;
+    const gender = document.getElementById('page-profile-gender').value;
 
     if (!name || !phone || !gender) {
-        alert("Please fill in all details.");
+        alert("Please fill in name, phone, and gender.");
         return;
     }
-    if (!selectedAvatar) {
-        alert("Please select an avatar.");
-        return;
-    }
+
+    const btn = document.querySelector('.profile-form-card .btn-primary');
+    const originalText = btn.innerText;
+    btn.innerText = "Saving...";
+    btn.disabled = true;
 
     try {
-        const newData = {
-            name: name,
-            phoneNumber: phone,
-            gender: gender,
-            avatar: selectedAvatar
-        };
+        const updatePayload = { displayName: name };
 
-        // UI Feedback
-        const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
-        const originalText = saveBtn ? saveBtn.innerText : 'Save Profile';
-        if (saveBtn) saveBtn.innerText = "Saving...";
+        // Fix: Only update Auth photoURL if it is NOT a base64 string
+        if (selectedAvatar && !selectedAvatar.startsWith('data:')) {
+            updatePayload.photoURL = selectedAvatar;
+        }
 
-        await user.updateProfile({ displayName: name, photoURL: selectedAvatar });
-        await db.collection('users').doc(user.uid).set(newData, { merge: true });
+        await user.updateProfile(updatePayload);
 
-        // Update CACHE immediately
-        const profile = {
-            name: name,
-            email: user.email,
-            avatar: selectedAvatar,
-            gender: gender,
-            phoneNumber: phone,
-            role: 'user' // Assume user unless admin check overrides later
-        };
-        sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+        await db.collection('users').doc(user.uid).set({
+            name, phoneNumber: phone, gender, avatar: selectedAvatar
+        }, { merge: true });
+
+        // Update Cache/UI
+
+        // Fix: Update Session Storage so other pages see changes immediately
+        let cached = {};
+        try { cached = JSON.parse(sessionStorage.getItem(PROFILE_CACHE_KEY) || '{}'); } catch (e) { }
+        cached.name = name;
+        cached.avatar = selectedAvatar;
+        cached.phoneNumber = phone;
+        cached.gender = gender;
+        cached.email = user.email;
+        sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
 
         updateNavbarAvatar(selectedAvatar);
         updateTopNavInfo(name, user.email);
 
-        const welcomeEl = document.getElementById('dash-welcome');
-        if (welcomeEl) welcomeEl.innerText = `Welcome back, ${name.split(' ')[0]}!`;
+        // Update Header Text immediately
+        document.getElementById('profile-page-name').innerText = name;
 
-        isProfileMandatory = false;
-        closeProfile();
+        alert("Profile updated successfully!");
+    } catch (e) {
+        console.error(e);
+        alert("Error updating profile.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
 
-        if (saveBtn) saveBtn.innerText = originalText;
 
-    } catch (error) {
-        console.error("Error updating profile:", error);
-        alert("Failed to update profile.");
+// Maintain compatibility for Admin/Modal usages if any
+// Maintain compatibility for Admin/Modal usages if any
+function saveProfile() {
+    console.warn("Legacy saveProfile called. Redirecting to new profile page.");
+    const user = firebase.auth().currentUser;
+    if (user) {
+        window.location.href = 'profile.html';
     }
 }
 
@@ -970,7 +1090,7 @@ function renderQuickMenu() {
             <div class="meal-img-box">
                 <img loading="lazy" src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
-                    ${isFav ? '❤️' : '🤍'}
+                    ${isFav ? '<i data-lucide="heart" fill="red" class="text-red-500" style="color: red;"></i>' : '<i data-lucide="heart"></i>'}
                 </button>
             </div>
             <div class="meal-info">
@@ -983,6 +1103,7 @@ function renderQuickMenu() {
             </div>
         </div>
     `}).join('');
+    lucide.createIcons();
 }
 
 // Initialize Cart listener
