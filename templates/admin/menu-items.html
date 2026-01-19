@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXEHBX2S2V', { send_page_view: true });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Items - Foodly Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="admin-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="active-orders.html">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </a>
+                <a href="order-history.html">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </a>
+                <a href="analytics.html">
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
+                </a>
+                <a href="reviews.html">
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
+                </a>
+                <a href="menu-items.html" class="active">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </a>
+                <a href="profile.html">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </a>
+                <a href="settings.html">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </a>
+                <a href="#" onclick="logout(); return false;">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-orders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-revenue">₹0.00</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-pending">0</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+
+            <!-- Menu Section -->
+            <div class="section-title">
+                <h2>Menu Items</h2>
+            </div>
+
+            <!-- Menu Type Selector -->
+            <div
+                style="margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn active-menu-type" id="btn-meal" onclick="switchMenuType('meal')"
+                        style="padding: 8px 16px; font-size: 1rem; cursor: pointer; background: var(--primary-color); color: white;">
+                        Meals
+                    </button>
+                    <button class="action-btn" id="btn-snack" onclick="switchMenuType('snack')"
+                        style="padding: 8px 16px; font-size: 1rem; cursor: pointer; background: #e2e8f0; color: var(--dark-color);">
+                        Quick Snacks
+                    </button>
+                </div>
+                <div>
+                    <input type="text" id="menuSearchInput" placeholder="Search menu items..." onkeyup="filterMenu()"
+                        style="padding: 8px 12px; border: 1px solid #ccc; border-radius: var(--radius-md); width: 250px;">
+                </div>
+            </div>
+
+            <div class="card mb-4"
+                style="background: white; padding: 25px; border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-sm); border: 1px solid #e2e8f0;">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--dark-color); font-weight: 700;">
+                    Add New Item</h3>
+
+                <form onsubmit="addMenuItem(event)" class="add-item-form">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Item Name</label>
+                            <input type="text" id="itemName" class="form-input" placeholder="e.g. Chicken Burger"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select id="itemCategory" class="form-input" required style="background-color: white;">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="punjabi">Punjabi</option>
+                                <option value="chinese">Chinese</option>
+                                <option value="indian_snack">Snacks</option>
+                                <option value="fast_food">Fast Food</option>
+                                <option value="drinks">Drinks</option>
+                                <option value="packets">Packets</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group price-group">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" id="itemPrice" class="form-input" placeholder="0.00" step="0.01"
+                                required>
+                        </div>
+
+                        <div class="form-group file-group">
+                            <label class="form-label">Item Image</label>
+                            <input type="file" id="newItemFile" accept="image/*" class="form-input"
+                                style="padding: 7px;">
+                        </div>
+
+                        <div class="form-group toggle-group">
+                            <span class="label-text">Available</span>
+                            <label class="switch">
+                                <input type="checkbox" id="itemAvailable" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btnAddItem" class="btn-primary">
+                            Add Item
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menu-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        window.foodItems = [];
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/main.js"></script>
+    <script src="admin-shared.js"></script>
+    <script src="admin-menu.js"></script>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            switchMenuType('meal');
+            initStatsListener();
+        });
+    </script>
+</body>
+
+</html>

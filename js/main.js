@@ -4,6 +4,164 @@
 let cart = []; // Initialize empty, load after auth
 let activeCategory = 'all';
 
+// --- Firebase Data Cache Utility ---
+const FoodlyCache = {
+    // Cache TTL in milliseconds (5 minutes)
+    TTL: 5 * 60 * 1000,
+
+    // Get cached data if valid
+    get: function (key) {
+        try {
+            const cached = localStorage.getItem(`foodly_cache_${key}`);
+            if (!cached) return null;
+
+            const { data, timestamp } = JSON.parse(cached);
+            const age = Date.now() - timestamp;
+
+            // Return data if within TTL
+            if (age < this.TTL) {
+                console.log(`[Cache] HIT: ${key} (${Math.round(age / 1000)}s old)`);
+                return data;
+            }
+
+            console.log(`[Cache] STALE: ${key} (expired)`);
+            return null;
+        } catch (e) {
+            console.warn('[Cache] Error reading:', e);
+            return null;
+        }
+    },
+
+    // Get stale data (for stale-while-revalidate pattern)
+    getStale: function (key) {
+        try {
+            const cached = localStorage.getItem(`foodly_cache_${key}`);
+            if (!cached) return null;
+
+            const { data } = JSON.parse(cached);
+            return data;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    // Set cache with timestamp
+    set: function (key, data) {
+        try {
+            const cacheEntry = {
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(`foodly_cache_${key}`, JSON.stringify(cacheEntry));
+            console.log(`[Cache] SET: ${key}`);
+        } catch (e) {
+            console.warn('[Cache] Error writing:', e);
+        }
+    },
+
+    // Clear specific cache
+    clear: function (key) {
+        localStorage.removeItem(`foodly_cache_${key}`);
+    },
+
+    // Clear all Foodly caches
+    clearAll: function () {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('foodly_cache_')) {
+                localStorage.removeItem(key);
+            }
+        });
+    },
+
+    // Cache keys
+    KEYS: {
+        USER_PROFILE: 'user_profile',
+        QUICK_MEALS: 'quick_meals',
+        USER_ORDERS: 'user_orders',
+        FOOD_ITEMS: 'food_items'
+    }
+};
+
+
+// --- Anti-Flicker: Mark auth as ready ---
+function markAuthReady() {
+    const mainContent = document.getElementById('main-app-content');
+    if (mainContent) {
+        mainContent.classList.add('auth-ready');
+    }
+    // Also mark body as ready
+    document.body.classList.add('auth-ready');
+}
+
+// Fallback: Show content after 500ms even if auth is slow
+setTimeout(markAuthReady, 500);
+
+// --- Immediate UI State Restoration (Before Auth) ---
+// This runs synchronously on page load to prevent flickering
+(function restoreUIState() {
+    // 1. Restore cart badge immediately from cached user
+    try {
+        // Try to get cart from last known user
+        const lastUserId = sessionStorage.getItem('foodly_last_user_id');
+        if (lastUserId) {
+            const savedCart = localStorage.getItem(`foodly_cart_${lastUserId}`);
+            if (savedCart) {
+                const cachedCart = JSON.parse(savedCart);
+                const totalItems = cachedCart.reduce((sum, item) => sum + item.quantity, 0);
+
+                // Update badge immediately (before auth)
+                const badge = document.getElementById('cart-count');
+                if (badge) {
+                    badge.innerText = totalItems;
+                    badge.style.display = totalItems > 0 ? '' : 'none';
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('[UIRestore] Cart restore failed:', e);
+    }
+
+    // 2. Restore profile info immediately from cache
+    try {
+        const cachedProfile = sessionStorage.getItem('foodly_user_profile_v2');
+        if (cachedProfile) {
+            const profile = JSON.parse(cachedProfile);
+            const nameEl = document.getElementById('top-nav-name');
+            const avatarEl = document.getElementById('top-nav-avatar');
+            if (nameEl && profile.name) nameEl.innerText = profile.name;
+            if (avatarEl && profile.avatar) avatarEl.src = profile.avatar;
+        }
+    } catch (e) {
+        console.warn('[UIRestore] Profile restore failed:', e);
+    }
+
+    // 3. Restore auth button state immediately from cache to prevent flicker
+    try {
+        const cachedAuthState = sessionStorage.getItem('foodly_auth_state');
+        const authBtn = document.getElementById('sidebar-auth-btn');
+        const authText = document.getElementById('sidebar-auth-text');
+
+        if (authBtn) {
+            if (cachedAuthState === 'logged_in') {
+                // User was logged in - show Logout immediately
+                if (authText) authText.innerText = 'Logout';
+                authBtn.style.color = '#ef4444';
+                authBtn.style.visibility = 'visible';
+            } else if (cachedAuthState === 'logged_out') {
+                // User was logged out - show Login immediately
+                if (authText) authText.innerText = 'Login';
+                authBtn.style.color = 'var(--primary-color)';
+                authBtn.style.visibility = 'visible';
+            } else {
+                // No cached state - hide button until auth is confirmed
+                authBtn.style.visibility = 'hidden';
+            }
+        }
+    } catch (e) {
+        console.warn('[UIRestore] Auth state restore failed:', e);
+    }
+})();
+
 // --- Functions ---
 function trackPage(pageName) {
     gtag('event', 'page_view', {
@@ -25,6 +183,9 @@ function saveCart() {
 function initCartListener() {
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
+            // Save user ID for immediate UI restoration on next page
+            sessionStorage.setItem('foodly_last_user_id', user.uid);
+
             // Load User Cart
             const savedCart = localStorage.getItem(`foodly_cart_${user.uid}`);
             if (savedCart) {
@@ -35,12 +196,15 @@ function initCartListener() {
         } else {
             // Clear Cart on Logout
             cart = [];
+            sessionStorage.removeItem('foodly_last_user_id');
         }
         updateCartBadge();
         // meaningful update if on cart page
         if (typeof renderCartPage === 'function') {
             renderCartPage();
         }
+        // Mark auth as ready to show content
+        markAuthReady();
     });
 }
 
@@ -52,22 +216,34 @@ function updateCartBadge() {
 
     if (badge) {
         badge.innerText = totalItems;
-        badge.style.display = totalItems > 0 ? '' : 'none';
+        badge.style.display = totalItems > 0 ? 'flex' : 'none';
     }
     if (mobileBadge) {
         mobileBadge.innerText = totalItems;
-        mobileBadge.style.display = totalItems > 0 ? '' : 'none';
+        mobileBadge.style.display = totalItems > 0 ? 'flex' : 'none';
     }
 
     if (mobileBtn) {
         mobileBtn.style.display = totalItems > 0 ? 'block' : 'none';
     }
+
+    // Update shared layout badge if available
+    if (typeof updateSharedCartBadge === 'function') {
+        updateSharedCartBadge(totalItems);
+    }
 }
+
+// Quantity limits per item type
+const CART_LIMITS = {
+    meal: 5,
+    quick: 10,
+    'quick-snack': 10
+};
 
 function addToCart(itemId, name, price, image, type = 'meal') {
     const user = firebase.auth().currentUser;
     if (!user) {
-        alert("Please login to add items to your cart.");
+        toast.warning("Please login to add items to your cart.");
         window.location.href = "index.html";
         return;
     }
@@ -87,9 +263,21 @@ function addToCart(itemId, name, price, image, type = 'meal') {
 
     if (!item) return;
 
+    // Determine the max limit based on item type
+    const itemType = item.type || type || 'meal';
+    const isQuickItem = itemType === 'quick' || itemType === 'quick-snack';
+    const maxLimit = isQuickItem ? CART_LIMITS.quick : CART_LIMITS.meal;
+
     const existingItem = cart.find(i => i.id === itemId);
 
+    // Check if adding this item would exceed the limit
     if (existingItem) {
+        if (existingItem.quantity >= maxLimit) {
+            // Show friendly toast warning
+            const itemTypeName = isQuickItem ? 'Quick Snack' : 'Meal';
+            toast.warning(`Whoa there! 🛑 You can only order ${maxLimit} of this ${itemTypeName} item. Save some for others! 😄`);
+            return;
+        }
         existingItem.quantity += 1;
     } else {
         cart.push({ ...item, quantity: 1 });
@@ -108,7 +296,8 @@ function addToCart(itemId, name, price, image, type = 'meal') {
     const btn = document.querySelector(`button[onclick="addToCart('${itemId}')"]`);
     if (btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✓';
+        btn.innerHTML = '<i data-lucide="check"></i>';
+        lucide.createIcons();
         btn.style.backgroundColor = 'var(--success-color)';
         btn.style.color = 'white';
         setTimeout(() => {
@@ -153,13 +342,12 @@ function getAutoRating(seed) {
 }
 
 // Global User Data
-// Global User Data
 let userFavourites = [];
 
 function toggleFavourite(itemId) {
     const user = firebase.auth().currentUser;
     if (!user) {
-        alert("Please login to save favourites!");
+        toast.warning("Please login to save favourites!");
         return;
     }
 
@@ -184,17 +372,24 @@ function toggleFavourite(itemId) {
 }
 
 // Init Favourites from Cache
+let menuAlreadyRendered = false; // Track if menu has been rendered to prevent flicker
+
 function initFavourites(user) {
     const cached = localStorage.getItem(`foodly_favs_${user.uid}`);
     if (cached) {
         userFavourites = JSON.parse(cached);
-        // Render immediately with cached data
-        if (document.getElementById('menu-grid')) renderMenu();
+        // Only render if menu hasn't been rendered yet (prevents initial flicker)
+        if (!menuAlreadyRendered && document.getElementById('menu-grid')) {
+            renderMenu();
+        }
         if (document.getElementById('quick-meals-grid')) renderQuickMenu();
     }
 }
 
 
+
+// Track last rendered content to avoid unnecessary flicker
+let lastMenuHTML = '';
 
 function renderMenu() {
     const container = document.getElementById('menu-grid');
@@ -215,14 +410,17 @@ function renderMenu() {
         items = items.filter(i => i.name.toLowerCase().includes(term) || i.description.toLowerCase().includes(term));
     }
 
-    container.innerHTML = items.map(item => {
+    // Only use animation on first render to prevent flicker
+    const animClass = menuAlreadyRendered ? '' : 'animate-fade-in';
+
+    const newHTML = items.map(item => {
         const isFav = userFavourites.includes(item.id);
         return `
-        <div class="meal-card animate-fade-in">
+        <div class="meal-card ${animClass}">
             <div class="meal-img-box">
                 <img loading="lazy" src="${item.image}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
-                    ${isFav ? '❤️' : '🤍'}
+                    ${isFav ? '<i data-lucide="heart" fill="red" class="text-red-500" style="color: red;"></i>' : '<i data-lucide="heart"></i>'}
                 </button>
             </div>
             <div class="meal-info">
@@ -236,6 +434,15 @@ function renderMenu() {
             </div>
         </div>
     `}).join('');
+
+    // Only update DOM if content actually changed (prevents flicker)
+    if (newHTML !== lastMenuHTML) {
+        container.innerHTML = newHTML;
+        lastMenuHTML = newHTML;
+        lucide.createIcons();
+    }
+
+    menuAlreadyRendered = true;
 }
 
 // Search Listener
@@ -313,25 +520,21 @@ function renderCartPage() {
             </div>
         `).join('');
 
-        // Unique ID for this section's QR
-        const qrCanvasId = `qr-${orderType}`;
-
         return `
-            <div class="cart-section" style="margin-bottom: 0; background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); flex: 1; min-width: 300px;">
-                <h3 style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">${title}</h3>
-                <div class="cart-list">
+            <div class="cart-section-card">
+                <h3 class="cart-section-title">${title}</h3>
+                <div class="cart-list-scroll">
                     ${listHtml}
                 </div>
-                <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
-                    <span>Total:</span>
-                    <span style="font-size: 1.2rem; color: var(--primary-color);">₹${sectionTotal.toFixed(2)}</span>
+                <div class="cart-section-footer">
+                    <div class="cart-total-row">
+                        <span>Total:</span>
+                        <span class="cart-total-price">₹${sectionTotal.toFixed(2)}</span>
+                    </div>
+                    <button onclick="submitOrder('${orderType}')" class="btn btn-primary cart-order-btn">
+                        ${btnLabel}
+                    </button>
                 </div>
-
-
-
-                <button onclick="submitOrder('${orderType}')" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-                    ${btnLabel}
-                </button>
             </div>
         `;
     };
@@ -340,7 +543,7 @@ function renderCartPage() {
     sectionsHtml += renderSection('🍛 MEALS SECTION', meals, 'meal', 'Place Meal Order');
     sectionsHtml += renderSection('🍟 QUICK SNACKS SECTION', snacks, 'quick-snack', 'Place Quick Snack Order');
 
-    container.innerHTML = `<div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: flex-start;">${sectionsHtml}</div>`;
+    container.innerHTML = `<div class="cart-sections-grid">${sectionsHtml}</div>`;
 
     // Initialize QR Codes after rendering
 
@@ -349,6 +552,19 @@ function renderCartPage() {
 function updateQty(itemId, change) {
     const item = cart.find(i => i.id === itemId);
     if (!item) return;
+
+    // Check limit when increasing quantity
+    if (change > 0) {
+        const itemType = item.type || 'meal';
+        const isQuickItem = itemType === 'quick' || itemType === 'quick-snack';
+        const maxLimit = isQuickItem ? CART_LIMITS.quick : CART_LIMITS.meal;
+
+        if (item.quantity >= maxLimit) {
+            const itemTypeName = isQuickItem ? 'Quick Snack' : 'Meal';
+            toast.warning(`Maximum limit reached! 🛑 You can only order ${maxLimit} of this ${itemTypeName} item.`);
+            return;
+        }
+    }
 
     item.quantity += change;
 
@@ -373,7 +589,7 @@ async function placeOrder() {
 
     const user = firebase.auth().currentUser;
     if (!user) {
-        alert("Please log in to place an order.");
+        toast.warning("Please log in to place an order.");
         window.location.href = "index.html";
         return;
     }
@@ -413,7 +629,7 @@ async function placeOrder() {
 
     } catch (error) {
         console.error("Order Error:", error);
-        alert("Failed to place order. Please try again.");
+        toast.error("Failed to place order. Please try again.");
         if (btn) {
             btn.disabled = false;
             btn.innerText = "Checkout";
@@ -425,34 +641,67 @@ function logout() {
     firebase.auth().signOut().then(() => {
         // Clear cached avatar on logout
         localStorage.removeItem('cachedAvatar');
+        // Clear all session caches
+        sessionStorage.removeItem('foodly_auth_state');
+        sessionStorage.removeItem('foodly_user_profile_v2');
+        sessionStorage.removeItem('foodly_last_user_id');
         window.location.href = 'index.html';
     }).catch((error) => {
         console.error('Logout error:', error);
-        alert('Error logging out');
+        toast.error('Error logging out');
     });
 }
 
 function updateSidebarAuthUI(user) {
     const authBtn = document.getElementById('sidebar-auth-btn');
     const authText = document.getElementById('sidebar-auth-text');
-    const authIcon = document.getElementById('sidebar-auth-icon');
+    // const authIcon = document.getElementById('sidebar-auth-icon'); // ID removed in refactor
 
     if (!authBtn) return;
 
     if (user) {
         // LOGGED IN: Show Logout
+        sessionStorage.setItem('foodly_auth_state', 'logged_in'); // Cache auth state
         if (authText) authText.innerText = "Logout";
         authBtn.onclick = logout;
         authBtn.classList.add('text-danger');
         authBtn.style.color = '#ef4444';
-        if (authIcon) authIcon.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>';
+        authBtn.style.visibility = 'visible'; // Ensure visible after auth confirmed
+
+        const existingIcon = authBtn.querySelector('svg, i[data-lucide]');
+        if (existingIcon) {
+            const newIcon = document.createElement('i');
+            newIcon.setAttribute('data-lucide', 'log-out');
+            newIcon.setAttribute('width', '16');
+            newIcon.setAttribute('height', '16');
+            existingIcon.replaceWith(newIcon);
+            lucide.createIcons();
+        } else {
+            // Fallback if no icon found
+            authBtn.insertAdjacentHTML('afterbegin', '<i data-lucide="log-out" width="16" height="16"></i>');
+            lucide.createIcons();
+        }
     } else {
         // GUEST: Show Login
+        sessionStorage.setItem('foodly_auth_state', 'logged_out'); // Cache auth state
         if (authText) authText.innerText = "Login";
         authBtn.onclick = () => window.location.href = 'index.html';
         authBtn.classList.remove('text-danger');
         authBtn.style.color = 'var(--primary-color)';
-        if (authIcon) authIcon.innerHTML = '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line>';
+        authBtn.style.visibility = 'visible'; // Ensure visible after auth confirmed
+
+        const existingIcon = authBtn.querySelector('svg, i[data-lucide]');
+        if (existingIcon) {
+            const newIcon = document.createElement('i');
+            newIcon.setAttribute('data-lucide', 'log-in');
+            newIcon.setAttribute('width', '16');
+            newIcon.setAttribute('height', '16');
+            existingIcon.replaceWith(newIcon);
+            lucide.createIcons();
+        } else {
+            authBtn.insertAdjacentHTML('afterbegin', '<i data-lucide="log-in" width="16" height="16"></i>');
+            lucide.createIcons();
+        }
     }
 }
 
@@ -522,20 +771,27 @@ async function fetchUserProfile(user) {
         if (doc.exists) {
             const data = doc.data();
 
-            // Sync Favourites
+            // Sync Favourites - only re-render if favourites changed
             if (data.favourites) {
-                userFavourites = data.favourites;
-                localStorage.setItem(`foodly_favs_${user.uid}`, JSON.stringify(userFavourites));
-                if (document.getElementById('menu-grid')) renderMenu();
-                if (document.getElementById('quick-meals-grid')) renderQuickMenu();
+                const prevFavs = JSON.stringify(userFavourites);
+                const newFavs = JSON.stringify(data.favourites);
+
+                // Only update and re-render if favourites actually changed
+                if (prevFavs !== newFavs) {
+                    userFavourites = data.favourites;
+                    localStorage.setItem(`foodly_favs_${user.uid}`, JSON.stringify(userFavourites));
+                    if (document.getElementById('menu-grid')) renderMenu();
+                    if (document.getElementById('quick-meals-grid')) renderQuickMenu();
+                }
             }
 
-            // Admin Logic
-            if (data.role === 'admin' && !window.location.href.includes('admin.html')) {
-                window.location.href = 'admin.html';
+            // Admin Logic - Check for both old admin.html and new admin/ folder
+            const isAdminPage = window.location.href.includes('admin.html') || window.location.href.includes('/admin/');
+            if (data.role === 'admin' && !isAdminPage) {
+                window.location.href = 'admin/active-orders.html';
                 return;
             }
-            if (window.location.href.includes('admin.html') && data.role !== 'admin') {
+            if (isAdminPage && data.role !== 'admin') {
                 window.location.href = 'menu.html';
                 return;
             }
@@ -627,139 +883,264 @@ function openProfile(mandatory = false) {
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    isProfileMandatory = mandatory;
-    const closeBtn = document.querySelector('.close-btn');
-    if (closeBtn) closeBtn.style.display = mandatory ? 'none' : 'block';
-
-    const modal = document.getElementById('profile-modal');
-    if (!modal) return;
-
-    const grid = document.getElementById('avatar-grid');
-    if (grid && grid.children.length === 0) {
-        grid.innerHTML = AVATARS.map(url =>
-            `<img src="${url}" class="avatar-option" onclick="selectAvatar('${url}')" id="avatar-${url.slice(-8)}">`
-        ).join('');
-    }
-
-    // Load form data... try cache first, else use Auth/Firestore
-    const cachedRaw = sessionStorage.getItem(PROFILE_CACHE_KEY);
-    let profile = cachedRaw ? JSON.parse(cachedRaw) : {};
-
-    const setVal = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.value = val || "";
-    };
-
-    setVal('profile-name', profile.name || user.displayName);
-    setVal('profile-email', profile.email || user.email);
-    setVal('profile-phone', profile.phoneNumber || user.phoneNumber);
-    setVal('profile-gender', profile.gender);
-
-    // Avatar Selection Logic
-    if (profile.avatar) {
-        selectAvatar(profile.avatar);
-    } else if (user.photoURL) {
-        selectAvatar(user.photoURL);
+    if (mandatory) {
+        window.location.href = 'profile.html?setupProfile=true';
     } else {
-        const preview = document.getElementById('avatar-preview');
-        if (preview) preview.src = DEFAULT_AVATAR;
-        selectedAvatar = "";
+        window.location.href = 'profile.html';
     }
-
-    // If cache was empty/partial, we might want to fetch latest silently? 
-    // But for openProfile, we usually want latest.
-    // Let's rely on fetchUserProfile having run or running.
-    // Use Firestore direct get for EDIT MODE to ensure freshness
-    db.collection('users').doc(user.uid).get().then(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            setVal('profile-name', data.name);
-            setVal('profile-phone', data.phoneNumber);
-            setVal('profile-gender', data.gender);
-            if (data.avatar) selectAvatar(data.avatar);
-        }
-    });
-
-    modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('show'), 10);
 }
 
 function closeProfile() {
-    if (isProfileMandatory) return;
+    // Deprecated for new page, keeping for legacy modal safety
     const modal = document.getElementById('profile-modal');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => modal.style.display = 'none', 300);
-    }
+    if (modal) modal.style.display = 'none';
 }
 
 function selectAvatar(url) {
     selectedAvatar = url;
-    const preview = document.getElementById('avatar-preview');
-    if (preview) preview.src = url;
+
+    // Update Profile Page if active
+    const pagePreview = document.getElementById('profile-page-avatar');
+    if (pagePreview) pagePreview.src = url;
+
+    // Update Modal (Legacy or Admin)
+    const modalPreview = document.getElementById('avatar-preview');
+    if (modalPreview) modalPreview.src = url;
+
     document.querySelectorAll('.avatar-option').forEach(img => {
         img.classList.toggle('selected', img.src === url);
     });
 }
 
-async function saveProfile() {
+function triggerAvatarUpload() {
+    document.getElementById('avatar-upload-input').click();
+}
+
+function handleAvatarUpload(input) {
+    // Skip if on profile page (it has its own handler)
+    if (window.location.pathname.includes('profile.html')) {
+        return;
+    }
+
+    const file = input.files[0];
+    if (!file) return;
+
     const user = firebase.auth().currentUser;
     if (!user) return;
 
-    const name = document.getElementById('profile-name').value;
-    const phone = document.getElementById('profile-phone').value;
-    const gender = document.getElementById('profile-gender').value;
+    // Show loading state on image
+    const preview = document.getElementById('profile-page-avatar');
+    const statusMsg = document.getElementById('profile-upload-status');
+    const originalSrc = preview.src;
+    preview.style.opacity = '0.5';
+    if (statusMsg) statusMsg.style.display = 'block';
+
+    // 1. Try Firebase Storage
+    const storageRef = firebase.storage().ref();
+    const fileRef = storageRef.child(`users/${user.uid}/profile_${Date.now()}.jpg`);
+
+    fileRef.put(file).then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+    }).then(url => {
+        selectAvatar(url);
+        preview.style.opacity = '1';
+        if (statusMsg) statusMsg.style.display = 'none';
+
+        // Close the avatar modal if it's open
+        const avatarModal = document.getElementById('avatarModal');
+        if (avatarModal) avatarModal.classList.remove('active');
+
+        toast.success('Photo uploaded! Click Save Changes to confirm.');
+    }).catch(error => {
+        console.warn("Storage upload failed, attempting local fallback:", error);
+
+        // 2. Fallback: Client-side resize & base64
+        // This handles cases where Storage Rules deny access or CORS fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_SIZE = 250; // Keep small for Firestore (limit 1MB doc size)
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                selectAvatar(dataUrl);
+                preview.style.opacity = '1';
+                if (statusMsg) statusMsg.style.display = 'none';
+
+                // Close the avatar modal if it's open
+                const avatarModal = document.getElementById('avatarModal');
+                if (avatarModal) avatarModal.classList.remove('active');
+
+                toast.success('Photo uploaded! Click Save Changes to confirm.');
+            };
+            img.onerror = () => {
+                toast.error("Failed to process image.");
+                preview.src = originalSrc;
+                preview.style.opacity = '1';
+                if (statusMsg) statusMsg.style.display = 'none';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+async function initProfilePage(user) {
+    if (!document.getElementById('profile-page-name')) return;
+
+    // Helper to populate UI
+    const populateProfileUI = (data, orderCount) => {
+        // Stats
+        const statOrders = document.getElementById('stat-total-orders');
+        if (statOrders) statOrders.innerText = orderCount || 0;
+
+        const favCount = userFavourites.length;
+        const statFav = document.getElementById('stat-favourites');
+        if (statFav) statFav.innerText = favCount;
+
+        // Helper
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || "";
+        };
+
+        // Header - Updated for new layout
+        document.getElementById('profile-page-name').innerText = data.name || user.displayName || 'User';
+
+        // Email display
+        const emailDisplay = document.getElementById('profile-page-email-display');
+        if (emailDisplay) emailDisplay.innerText = user.email;
+
+        document.getElementById('profile-page-avatar').src = data.avatar || user.photoURL || DEFAULT_AVATAR;
+
+        // Form
+        setVal('page-profile-name', data.name || user.displayName);
+        setVal('page-profile-email', user.email);
+        setVal('page-profile-phone', data.phoneNumber || user.phoneNumber);
+        setVal('page-profile-gender', data.gender);
+
+        selectedAvatar = data.avatar || user.photoURL || DEFAULT_AVATAR;
+        window.selectedAvatar = selectedAvatar;
+    };
+
+    // Try loading from cache first
+    const cacheKey = `${FoodlyCache.KEYS.USER_PROFILE}_${user.uid}`;
+    const cachedProfile = FoodlyCache.getStale(cacheKey);
+    if (cachedProfile) {
+        populateProfileUI(cachedProfile.userData, cachedProfile.orderCount);
+
+        // Check if cache is fresh
+        if (FoodlyCache.get(cacheKey)) {
+            return; // Fresh cache, no refetch needed
+        }
+    }
+
+    // Fetch from Firestore
+    const ordersSnap = await db.collection('orders').where('userId', '==', user.uid).get();
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const data = userDoc.exists ? userDoc.data() : {};
+
+    // Cache the profile data
+    FoodlyCache.set(cacheKey, {
+        userData: data,
+        orderCount: ordersSnap.size
+    });
+
+    // Populate UI
+    populateProfileUI(data, ordersSnap.size);
+}
+
+async function saveProfilePage() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+
+    const name = document.getElementById('page-profile-name').value;
+    const phone = document.getElementById('page-profile-phone').value;
+    const gender = document.getElementById('page-profile-gender').value;
 
     if (!name || !phone || !gender) {
-        alert("Please fill in all details.");
+        toast.warning("Please fill in name, phone, and gender.");
         return;
     }
-    if (!selectedAvatar) {
-        alert("Please select an avatar.");
-        return;
-    }
+
+    const btn = document.querySelector('.save-btn') || document.querySelector('.profile-form-card .btn-primary');
+    if (!btn) return;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "Saving...";
+    btn.disabled = true;
 
     try {
-        const newData = {
-            name: name,
-            phoneNumber: phone,
-            gender: gender,
-            avatar: selectedAvatar
-        };
+        const updatePayload = { displayName: name };
 
-        // UI Feedback
-        const saveBtn = document.querySelector('button[onclick="saveProfile()"]');
-        const originalText = saveBtn ? saveBtn.innerText : 'Save Profile';
-        if (saveBtn) saveBtn.innerText = "Saving...";
+        // Fix: Only update Auth photoURL if it is NOT a base64 string
+        if (selectedAvatar && !selectedAvatar.startsWith('data:')) {
+            updatePayload.photoURL = selectedAvatar;
+        }
 
-        await user.updateProfile({ displayName: name, photoURL: selectedAvatar });
-        await db.collection('users').doc(user.uid).set(newData, { merge: true });
+        await user.updateProfile(updatePayload);
 
-        // Update CACHE immediately
-        const profile = {
-            name: name,
-            email: user.email,
-            avatar: selectedAvatar,
-            gender: gender,
-            phoneNumber: phone,
-            role: 'user' // Assume user unless admin check overrides later
-        };
-        sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+        await db.collection('users').doc(user.uid).set({
+            name, phoneNumber: phone, gender, avatar: selectedAvatar
+        }, { merge: true });
+
+        // Update Cache/UI
+
+        // Fix: Update Session Storage so other pages see changes immediately
+        let cached = {};
+        try { cached = JSON.parse(sessionStorage.getItem(PROFILE_CACHE_KEY) || '{}'); } catch (e) { }
+        cached.name = name;
+        cached.avatar = selectedAvatar;
+        cached.phoneNumber = phone;
+        cached.gender = gender;
+        cached.email = user.email;
+        sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
 
         updateNavbarAvatar(selectedAvatar);
         updateTopNavInfo(name, user.email);
 
-        const welcomeEl = document.getElementById('dash-welcome');
-        if (welcomeEl) welcomeEl.innerText = `Welcome back, ${name.split(' ')[0]}!`;
+        // Update Header Text immediately
+        document.getElementById('profile-page-name').innerText = name;
 
-        isProfileMandatory = false;
-        closeProfile();
+        // Invalidate profile cache so next load fetches fresh data
+        FoodlyCache.clear(`${FoodlyCache.KEYS.USER_PROFILE}_${user.uid}`);
 
-        if (saveBtn) saveBtn.innerText = originalText;
+        toast.success("Profile updated successfully!");
+    } catch (e) {
+        console.error(e);
+        toast.error("Error updating profile.");
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
 
-    } catch (error) {
-        console.error("Error updating profile:", error);
-        alert("Failed to update profile.");
+
+// Maintain compatibility for Admin/Modal usages if any
+function saveProfile() {
+    console.warn("Legacy saveProfile called. Redirecting to new profile page.");
+    const user = firebase.auth().currentUser;
+    if (user) {
+        window.location.href = 'profile.html';
     }
 }
 
@@ -867,13 +1248,27 @@ function loadQuickMeals() {
     const grid = document.getElementById('quick-meals-grid');
     if (!grid) return;
 
-    // If already loaded, just render
+    // If already loaded in memory, just render
     if (quickFoodItems.length > 0) {
         renderQuickCategories();
         renderQuickMenu();
         return;
     }
 
+    // Try loading from cache first (stale-while-revalidate)
+    const cachedData = FoodlyCache.getStale(FoodlyCache.KEYS.QUICK_MEALS);
+    if (cachedData && cachedData.length > 0) {
+        quickFoodItems = cachedData;
+        renderQuickCategories();
+        renderQuickMenu();
+
+        // Check if cache is still fresh
+        if (FoodlyCache.get(FoodlyCache.KEYS.QUICK_MEALS)) {
+            return; // Cache is fresh, no need to refetch
+        }
+    }
+
+    // Fetch from Firestore (either cache miss or background revalidation)
     db.collection('quick_meals')
         .where('available', '==', true)
         .get()
@@ -893,6 +1288,9 @@ function loadQuickMeals() {
                     price: Number(data.price || data.Price || 0)
                 });
             });
+
+            // Cache the data
+            FoodlyCache.set(FoodlyCache.KEYS.QUICK_MEALS, quickFoodItems);
 
             // Initial Render
             renderQuickCategories();
@@ -970,7 +1368,7 @@ function renderQuickMenu() {
             <div class="meal-img-box">
                 <img loading="lazy" src="${item.image || 'https://via.placeholder.com/150'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/150'">
                 <button class="meal-fav-btn" onclick="toggleFavourite('${item.id}')">
-                    ${isFav ? '❤️' : '🤍'}
+                    ${isFav ? '<i data-lucide="heart" fill="red" class="text-red-500" style="color: red;"></i>' : '<i data-lucide="heart"></i>'}
                 </button>
             </div>
             <div class="meal-info">
@@ -983,25 +1381,37 @@ function renderQuickMenu() {
             </div>
         </div>
     `}).join('');
+    lucide.createIcons();
 }
 
 // Initialize Cart listener
 initCartListener();
 
 // --- ORDERS LOGIC ---
+// Track if we've rendered from cache to avoid flicker
+let ordersRenderedFromCache = false;
+
 function renderOrders(userId) {
     const container = document.getElementById('orders-list');
     if (!container) return; // Guard clause for non-order pages
 
-    // 1. CACHE READ
+    // 1. CACHE READ (only if not already rendered)
     const cacheKey = `cachedOrders_${userId}`;
     const cachedData = localStorage.getItem(cacheKey);
 
-    // Only use cache if we have it and it's not "empty" state
-    if (cachedData) {
+    // Only use cache if we have it, it's not empty, AND we haven't rendered yet
+    if (cachedData && !ordersRenderedFromCache) {
         const orders = JSON.parse(cachedData);
         if (orders.length > 0 && typeof generateOrdersHTML === 'function') {
-            container.innerHTML = generateOrdersHTML(orders);
+            // Check if container already has content (rendered by orders.html)
+            if (container.innerHTML.trim() === '' || container.innerHTML.includes('Populated by JS')) {
+                container.innerHTML = generateOrdersHTML(orders);
+                ordersRenderedFromCache = true;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                // Already rendered by orders.html, skip
+                ordersRenderedFromCache = true;
+            }
         }
     }
 
@@ -1029,7 +1439,7 @@ function renderOrders(userId) {
             // Update Cache
             localStorage.setItem(cacheKey, JSON.stringify(orders));
 
-            // Render
+            // Render - but only if data changed or first render
             if (orders.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-muted" style="margin-top: 4rem;">
@@ -1038,8 +1448,14 @@ function renderOrders(userId) {
                     </div>
                 `;
             } else {
+                // Smart update: only re-render if content actually changed
                 if (typeof generateOrdersHTML === 'function') {
-                    container.innerHTML = generateOrdersHTML(orders);
+                    const newHTML = generateOrdersHTML(orders);
+                    // Only update if different to prevent flicker
+                    if (container.innerHTML !== newHTML) {
+                        container.innerHTML = newHTML;
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
                 }
             }
 
@@ -1351,7 +1767,7 @@ function saveSettings() {
         }, 2000);
     }).catch(err => {
         console.error(err);
-        alert("Failed to save settings.");
+        toast.error("Failed to save settings.");
         btn.innerText = originalText;
         btn.disabled = false;
     });
@@ -1383,17 +1799,17 @@ function changePassword() {
     const confirmPass = document.getElementById('confirm-password').value;
 
     if (!currentPass || !newPass || !confirmPass) {
-        alert("Please fill in all fields.");
+        toast.warning("Please fill in all fields.");
         return;
     }
 
     if (newPass !== confirmPass) {
-        alert("New passwords do not match.");
+        toast.warning("New passwords do not match.");
         return;
     }
 
     if (newPass.length < 6) {
-        alert("New password must be at least 6 characters long.");
+        toast.warning("New password must be at least 6 characters.");
         return;
     }
 
@@ -1404,14 +1820,14 @@ function changePassword() {
         // 2. Update Password
         return user.updatePassword(newPass);
     }).then(() => {
-        alert("Password updated successfully!");
+        toast.success("Password updated successfully!");
         togglePasswordForm(false);
     }).catch(error => {
         console.error("Error changing password:", error);
         if (error.code === 'auth/wrong-password') {
-            alert("Current password is incorrect.");
+            toast.error("Current password is incorrect.");
         } else {
-            alert("Error: " + error.message);
+            toast.error("Error: " + error.message);
         }
     });
 }
@@ -1423,7 +1839,7 @@ function submitSupport() {
     const msg = msgEl.value.trim();
 
     if (!msg) {
-        alert("Please describe your issue.");
+        toast.warning("Please describe your issue.");
         return;
     }
 
@@ -1438,7 +1854,7 @@ function submitSupport() {
         statusEl.style.display = 'block';
         setTimeout(() => statusEl.style.display = 'none', 3000);
     }).catch(err => {
-        alert("Failed to send ticket.");
+        toast.error("Failed to send ticket.");
     });
 }
 
@@ -1446,20 +1862,20 @@ function handleForgotPassword() {
     const email = prompt("Please enter your registered email address:");
     if (email) {
         if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            alert("Please enter a valid email address.");
+            toast.warning("Please enter a valid email address.");
             return;
         }
 
         firebase.auth().sendPasswordResetEmail(email)
             .then(() => {
-                alert("Password reset email sent! Please check your inbox.");
+                toast.success("Password reset email sent! Please check your inbox.");
             })
             .catch((error) => {
                 console.error("Error sending reset email:", error);
                 if (error.code === 'auth/user-not-found') {
-                    alert("No user found with this email address.");
+                    toast.error("No user found with this email address.");
                 } else {
-                    alert("Error: " + error.message);
+                    toast.error("Error: " + error.message);
                 }
             });
     }

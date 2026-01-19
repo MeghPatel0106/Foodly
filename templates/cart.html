@@ -21,6 +21,11 @@
     <title>Your Cart - Foodly</title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/toast-utils.js"></script>
     <style>
         .cart-item {
             display: flex;
@@ -113,6 +118,125 @@
             padding: var(--spacing-xl);
             display: none;
         }
+
+        /* New Cart Layout Styles */
+        .cart-sections-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .cart-section-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 250px);
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .cart-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 1.25rem 1.5rem;
+            margin: 0;
+            border-bottom: 1px solid #eee;
+            background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+        }
+
+        .cart-list-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 1.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+        }
+
+        .cart-list-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .cart-list-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .cart-list-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .cart-list-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-section-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #eee;
+            background: #fafafa;
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cart-total-price {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        .cart-order-btn {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            border-radius: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .cart-sections-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-section-card {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cart-section-card {
+                height: 350px;
+                border-radius: 12px;
+            }
+
+            .cart-section-title {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+
+            .cart-list-scroll {
+                padding: 0.75rem 1rem;
+            }
+
+            .cart-section-footer {
+                padding: 0.875rem 1rem;
+            }
+
+            .cart-item {
+                padding: 0.75rem;
+            }
+
+            .cart-item-img {
+                width: 50px;
+                height: 50px;
+            }
+        }
     </style>
 </head>
 
@@ -130,37 +254,49 @@
         <ul class="user-sidebar-menu">
             <li>
                 <a href="dashboard.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📊</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="layout-dashboard"></i>
+                    </span>
                     Dashboard
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
-                    <span class="user-sidebar-icon">🍽️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="utensils"></i>
+                    </span>
                     Meal
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
-                    <span class="user-sidebar-icon">🍿</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="coffee"></i>
+                    </span>
                     Quick Snacks
                 </a>
             </li>
             <li>
                 <a href="orders.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📦</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="package"></i>
+                    </span>
                     Order
                 </a>
             </li>
             <li>
                 <a href="invoices.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">🧾</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="indian-rupee"></i>
+                    </span>
                     Invoice
                 </a>
             </li>
             <li>
                 <a href="cart.html" class="user-sidebar-link active">
-                    <span class="user-sidebar-icon">🛒</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="shopping-cart"></i>
+                    </span>
                     Cart
                     <span id="cart-count"
                         style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
@@ -168,13 +304,17 @@
             </li>
             <li>
                 <a href="analytics.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📈</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="trending-up"></i>
+                    </span>
                     Analytics
                 </a>
             </li>
             <li>
                 <a href="settings.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">⚙️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="settings"></i>
+                    </span>
                     Setting
                 </a>
             </li>
@@ -184,13 +324,7 @@
 
             <button id="sidebar-auth-btn" class="btn btn-sm text-danger"
                 style="margin-top: 10px; padding-left: 0; color: #ef4444; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;">
-                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1-2-2v4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
+                <i data-lucide="log-out" width="16" height="16"></i>
                 <span id="sidebar-auth-text">Logout</span>
             </button>
         </div>
@@ -199,7 +333,7 @@
     <main class="user-main-content">
         <nav class="user-top-navbar">
             <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-                ☰
+                <i data-lucide="menu"></i>
             </button>
             <div class="navbar-content-end">
 
@@ -207,7 +341,9 @@
 
                 <!-- Notification Bell -->
                 <div class="notification-icon-wrapper" onclick="toggleNotifications()">
-                    <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                    <span class="icon">
+                        <i data-lucide="bell"></i>
+                    </span>
                     <span class="badge" id="nav-notification-badge" style="display: none;"></span>
                 </div>
 
@@ -225,11 +361,13 @@
             </div>
         </nav>
 
-        <div class="container animate-fade-in" style="margin-top: 2rem; max-width: 800px;">
+        <div class="container animate-fade-in" style="margin-top: 1rem; max-width: 98%; padding: 0 1rem;">
             <h1 class="mb-4">Your Cart</h1>
 
             <div id="empty-state">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+                <div style="font-size: 3rem; margin-bottom: 1rem; display: flex; justify-content: center;">
+                    <i data-lucide="shopping-cart" style="width: 48px; height: 48px;"></i>
+                </div>
                 <h3>Your cart is empty</h3>
                 <p class="text-muted">Looks like you haven't added anything yet.</p>
                 <a href="menu.html" class="btn btn-primary" style="margin-top: 1rem;">Browse Menu</a>
@@ -299,12 +437,12 @@
         </div> <!-- End main-app-content -->
     </main>
 
-    <script src="../js/mock-data.js"></script>
+
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <script>
         const firebaseConfig = {
@@ -312,7 +450,7 @@
             authDomain: "foodly-40d16.firebaseapp.com",
             projectId: "foodly-40d16",
             storageBucket: "foodly-40d16.firebasestorage.app",
-            messagingSenderId: "74040922594",
+
             appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
         };
         // Use SAME firebaseConfig as index.html
@@ -323,23 +461,19 @@
         const db = firebase.firestore();
         const functions = firebase.functions();
     </script>
+    <script src="../js/shared-layout.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/fcm_foreground.js"></script>
+
     <script>
         // STRICT USER PROTECTION
         firebase.auth().onAuthStateChanged(async (user) => {
             updateSidebarAuthUI(user); // Update Sidebar
 
             if (!user) {
-                // Show Lock Screen
-                document.getElementById('main-app-content').style.display = 'none';
-                document.getElementById('locked-view').style.display = 'block';
+                // Redirect to login if not authenticated
+                window.location.href = "index.html";
                 return;
             }
-
-            // Logged In: Show Content
-            document.getElementById('locked-view').style.display = 'none';
-            document.getElementById('main-app-content').style.display = 'block';
 
             const snap = await firebase.firestore()
                 .collection("users")
@@ -348,7 +482,11 @@
 
             if (snap.exists && snap.data().role === "admin") {
                 window.location.href = "admin.html";
+                return;
             }
+
+            // Mark auth ready for smooth display
+            if (typeof markAuthReady === 'function') markAuthReady();
         });
         const auth = firebase.auth();
 
@@ -356,12 +494,12 @@
             const user = auth.currentUser;
 
             if (!user) {
-                alert("Please login first");
+                toast.warning("Please login first");
                 return;
             }
 
             if (!cart || cart.length === 0) {
-                alert("Cart is empty");
+                toast.warning("Cart is empty");
                 return;
             }
 
@@ -379,7 +517,7 @@
             }
 
             if (checkoutItems.length === 0) {
-                alert("No items to checkout in this section.");
+                toast.warning("No items to checkout in this section.");
                 return;
             }
 
@@ -430,13 +568,13 @@
 
                 const rzp1 = new Razorpay(options);
                 rzp1.on('payment.failed', function (response) {
-                    alert("Payment Failed: " + response.error.description);
+                    toast.error("Payment Failed: " + response.error.description);
                 });
                 rzp1.open();
 
             } catch (error) {
                 console.error("Payment Init Error:", error);
-                alert("Failed to initiate payment: " + error.message);
+                toast.error("Failed to initiate payment: " + error.message);
             }
         }
 
@@ -509,22 +647,15 @@
                 window.location.href = "orders.html";
 
             } catch (error) {
-                alert("Error placing order after payment: " + error.message);
+                toast.error("Error placing order after payment: " + error.message);
                 console.error("Order error:", error);
             }
         }
     </script>
-    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
     <script>
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.user-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
-            }
-        }
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
     </script>
 </body>
 

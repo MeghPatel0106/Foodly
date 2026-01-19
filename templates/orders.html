@@ -20,6 +20,11 @@
     <title>My Orders - Foodly</title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/toast-utils.js"></script>
     <style>
         /* --- Premium Order Card Design --- */
         .order-card {
@@ -335,37 +340,49 @@
         <ul class="user-sidebar-menu">
             <li>
                 <a href="dashboard.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📊</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="layout-dashboard"></i>
+                    </span>
                     Dashboard
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
-                    <span class="user-sidebar-icon">🍽️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="utensils"></i>
+                    </span>
                     Meal
                 </a>
             </li>
             <li>
                 <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
-                    <span class="user-sidebar-icon">🍿</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="coffee"></i>
+                    </span>
                     Quick Snacks
                 </a>
             </li>
             <li>
                 <a href="orders.html" class="user-sidebar-link active">
-                    <span class="user-sidebar-icon">📦</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="package"></i>
+                    </span>
                     Order
                 </a>
             </li>
             <li>
                 <a href="invoices.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">🧾</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="indian-rupee"></i>
+                    </span>
                     Invoice
                 </a>
             </li>
             <li>
                 <a href="cart.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">🛒</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="shopping-cart"></i>
+                    </span>
                     Cart
                     <span id="cart-count"
                         style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
@@ -373,13 +390,17 @@
             </li>
             <li>
                 <a href="analytics.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">📈</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="trending-up"></i>
+                    </span>
                     Analytics
                 </a>
             </li>
             <li>
                 <a href="settings.html" class="user-sidebar-link">
-                    <span class="user-sidebar-icon">⚙️</span>
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="settings"></i>
+                    </span>
                     Setting
                 </a>
             </li>
@@ -390,13 +411,7 @@
             <button id="sidebar-auth-btn" class="btn btn-sm"
                 style="margin-top: 10px; padding-left: 0; color: var(--primary-color); display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;"
                 onclick="window.location.href='index.html'">
-                <svg id="sidebar-auth-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                    <polyline points="10 17 15 12 10 7"></polyline>
-                    <line x1="15" y1="12" x2="3" y2="12"></line>
-                </svg>
+                <i data-lucide="log-in" width="16" height="16"></i>
                 <span id="sidebar-auth-text">Login</span>
             </button>
         </div>
@@ -407,7 +422,9 @@
         <div id="locked-view" style="display: none; text-align: center; padding-top: 100px;">
             <div
                 style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                <div style="font-size: 3rem; margin-bottom: 20px; display: flex; justify-content: center;">
+                    <i data-lucide="lock" style="width: 48px; height: 48px;"></i>
+                </div>
                 <h2 style="margin-bottom: 10px;">Login Required</h2>
                 <p class="text-muted" style="margin-bottom: 30px;">Please login or register to view your orders.</p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
@@ -416,38 +433,19 @@
                     <a href="index.html" class="btn btn-secondary"
                         style="text-decoration: none; padding: 10px 30px;">Register</a>
                 </div>
-                <div style="margin-top: 20px;">
-                    <button onclick="checkAuthManual()"
-                        style="background:none; border:none; text-decoration:underline; color:#666; cursor:pointer;">
-                        I am already logged in (Refresh)
-                    </button>
-                    <div id="auth-debug-msg" style="font-size: 0.8rem; color: #999; margin-top: 5px;"></div>
-                </div>
             </div>
         </div>
 
-        <script>
-            async function checkAuthManual() {
-                const msg = document.getElementById('auth-debug-msg');
-                msg.innerText = "Checking...";
-                const user = firebase.auth().currentUser;
-                if (user) {
-                    msg.innerText = "User found! Reloading...";
-                    setTimeout(() => window.location.reload(), 500);
-                } else {
-                    msg.innerText = "No user detected. Please login again.";
-                }
-            }
-        </script>
-
-        <div id="main-app-content" style="display: block;">
+        <div id="main-app-content">
             <nav class="user-top-navbar">
                 <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-                    ☰
+                    <i data-lucide="menu"></i>
                 </button>
                 <div class="navbar-content-end">
                     <div class="notification-icon-wrapper" onclick="toggleNotifications()">
-                        <span class="icon" style="font-size: 1.5rem;">🔔</span>
+                        <span class="icon">
+                            <i data-lucide="bell"></i>
+                        </span>
                         <span class="badge" id="nav-notification-badge" style="display: none;"></span>
                     </div>
                     <div class="user-profile-widget" onclick="openProfile()"
@@ -463,7 +461,7 @@
                 </div>
             </nav>
 
-            <div class="container animate-fade-in" style="margin-top: 2rem; max-width: 800px;">
+            <div class="container" style="margin-top: 2rem; max-width: 800px;">
                 <div class="flex justify-between items-center mb-4">
                     <h1 style="margin-bottom: 0;">My Orders</h1>
                     <div>
@@ -478,10 +476,6 @@
 
                 <div id="orders-list">
                     <!-- Populated by JS -->
-                    <div class="text-center text-muted" style="margin-top: 4rem;">
-                        <p>No orders yet.</p>
-                        <a href="menu.html" style="color: var(--primary-color)">Start ordering</a>
-                    </div>
                 </div>
             </div>
 
@@ -587,7 +581,7 @@
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+
 
         <script>
             const firebaseConfig = {
@@ -595,7 +589,7 @@
                 authDomain: "foodly-40d16.firebaseapp.com",
                 projectId: "foodly-40d16",
                 storageBucket: "foodly-40d16.firebasestorage.app",
-                messagingSenderId: "74040922594",
+
                 appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
             };
             if (!firebase.apps.length) {
@@ -610,16 +604,94 @@
             // Global Queue State
             window.globalMealQueue = [];
 
-            function refreshOrdersUI(userId) {
-                const cacheKey = `cachedOrders_${userId}`;
-                const cachedData = localStorage.getItem(cacheKey);
-                if (cachedData) {
-                    const orders = JSON.parse(cachedData);
-                    const container = document.getElementById('orders-list');
-                    if (container && orders.length > 0 && typeof generateOrdersHTML === 'function') {
-                        container.innerHTML = generateOrdersHTML(orders);
+            // Render lock to prevent multiple renders
+            let ordersRendered = false;
+            let renderDebounceTimer = null;
+
+            // Immediate: Try to load cached orders before auth
+            (function loadCachedOrdersImmediately() {
+                const lastUserId = sessionStorage.getItem('foodly_last_user_id');
+                if (lastUserId) {
+                    const cacheKey = `cachedOrders_${lastUserId}`;
+                    const cachedData = localStorage.getItem(cacheKey);
+                    if (cachedData) {
+                        try {
+                            const orders = JSON.parse(cachedData);
+                            const container = document.getElementById('orders-list');
+                            if (container && orders.length > 0 && typeof generateOrdersHTML === 'function') {
+                                // Render cached orders immediately - mark as rendered
+                                container.innerHTML = generateOrdersHTML(orders);
+                                ordersRendered = true;
+                                lucide.createIcons();
+                            }
+                        } catch (e) {
+                            console.warn('[Orders] Cache parse failed', e);
+                        }
                     }
                 }
+            })();
+
+            // Debounced refresh to prevent multiple rapid updates
+            function refreshOrdersUI(userId, forceRender = false) {
+                // Clear any pending render
+                if (renderDebounceTimer) {
+                    clearTimeout(renderDebounceTimer);
+                }
+
+                // If already rendered and not forcing, skip
+                if (ordersRendered && !forceRender) {
+                    return;
+                }
+
+                renderDebounceTimer = setTimeout(() => {
+                    const cacheKey = `cachedOrders_${userId}`;
+                    const cachedData = localStorage.getItem(cacheKey);
+                    if (cachedData) {
+                        const orders = JSON.parse(cachedData);
+                        const container = document.getElementById('orders-list');
+                        if (container && orders.length > 0 && typeof generateOrdersHTML === 'function') {
+                            container.innerHTML = generateOrdersHTML(orders);
+                            ordersRendered = true;
+                            lucide.createIcons();
+                        }
+                    }
+                }, 50); // Small debounce to batch updates
+            }
+
+            // Update ONLY queue positions without re-rendering entire list (NO FLICKER)
+            function updateQueuePositionsOnly() {
+                if (!window.globalMealQueue) return;
+
+                // Get all order cards currently displayed
+                const orderCards = document.querySelectorAll('.order-card');
+
+                orderCards.forEach(card => {
+                    // Find the queue position element in this card
+                    const queuePill = card.querySelector('.queue-pill');
+                    if (!queuePill) return; // No queue pill means not in queue
+
+                    // Get the order ID from the card
+                    const orderIdElement = card.querySelector('.order-id-display');
+                    if (!orderIdElement) return;
+
+                    const orderIdText = orderIdElement.textContent.trim();
+                    const orderId = orderIdText.replace('#', '');
+
+                    // Find position in queue
+                    const position = window.globalMealQueue.findIndex(q => q.id === orderId);
+
+                    if (position !== -1) {
+                        // Update the position number WITHOUT re-rendering
+                        const positionNumber = position + 1;
+                        const queueCount = queuePill.querySelector('.queue-count');
+                        if (queueCount) {
+                            // Only update if changed to prevent unnecessary DOM writes
+                            if (queueCount.textContent !== String(positionNumber)) {
+                                queueCount.textContent = positionNumber;
+                            }
+                        }
+                    }
+                });
             }
 
             // UI Elements
@@ -628,12 +700,6 @@
             const authIconDefault = document.getElementById('sidebar-auth-icon');
             const lockedView = document.getElementById('locked-view');
             const mainContent = document.getElementById('main-app-content');
-            const loadingView = document.getElementById('loading-view');
-
-            // Initial State: Show Loading, Hide others
-            if (loadingView) loadingView.style.display = 'flex';
-            if (lockedView) lockedView.style.display = 'none';
-            if (mainContent) mainContent.style.display = 'none';
 
             // Helper: Update UI for Logged In User
             async function handleLoggedIn(user) {
@@ -645,12 +711,14 @@
                     authBtnDefault.classList.add('text-danger');
                     authBtnDefault.style.color = '#ef4444';
                 }
-                if (authIconDefault) authIconDefault.innerHTML = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>';
+                if (authIconDefault) authIconDefault.innerHTML = '<i data-lucide="log-out"></i>';
+                lucide.createIcons();
 
-                // Show Main Content
-                if (loadingView) loadingView.style.display = 'none';
+                // Show Main Content with fade-in
                 if (lockedView) lockedView.style.display = 'none';
-                if (mainContent) mainContent.style.display = 'block';
+                if (mainContent) {
+                    mainContent.classList.add('auth-ready');
+                }
 
                 // Check Admin (Silent)
                 try {
@@ -696,8 +764,29 @@
                             queue.sort((a, b) => a.sortTime - b.sortTime);
 
                             window.globalMealQueue = queue;
-                            // Trigger UI Refresh
-                            refreshOrdersUI(user.uid);
+
+                            // First time queue loads - need to re-render to show queue pills
+                            // After that, just update the numbers surgically
+                            if (!window.queueInitialized && queue.length > 0) {
+                                console.log('[Queue] First load with', queue.length, 'items - forcing render');
+                                window.queueInitialized = true;
+                                // Force render immediately (no debounce) to show queue pills
+                                const cacheKey = `cachedOrders_${user.uid}`;
+                                const cachedData = localStorage.getItem(cacheKey);
+                                if (cachedData) {
+                                    const orders = JSON.parse(cachedData);
+                                    const container = document.getElementById('orders-list');
+                                    if (container && orders.length > 0 && typeof generateOrdersHTML === 'function') {
+                                        container.innerHTML = generateOrdersHTML(orders);
+                                        lucide.createIcons();
+                                        console.log('[Queue] Rendered with queue positions');
+                                    }
+                                }
+                            } else if (queue.length > 0) {
+                                // Update ONLY queue positions (no flicker!)
+                                console.log('[Queue] Updating positions only');
+                                updateQueuePositionsOnly();
+                            }
                         });
                 }
                 // --- END LISTENER ---
@@ -715,7 +804,6 @@
                 }
 
                 // Show Lock Screen
-                if (loadingView) loadingView.style.display = 'none';
                 if (mainContent) mainContent.style.display = 'none';
                 if (lockedView) lockedView.style.display = 'block';
             }
@@ -869,14 +957,14 @@
                                 queueHtml = `
                                     <div class="queue-pill">
                                         <span>⏳ Queue Position:</span>
-                                        <span class="queue-count">${queueIndex}</span>
+                                        <span class="queue-count">${queueIndex + 1}</span>
                                     </div>`;
                             }
                         }
                     }
 
                     return `
-                    <div class="order-card ${cardModifier} animate-fade-in">
+                    <div class="order-card ${cardModifier}">
                         
                         <!-- LEFT ZONE: ID & Type -->
                         <div class="card-left">
@@ -931,7 +1019,7 @@
                     // UI listener will auto-update
                 } catch (error) {
                     console.error("Error marking picked:", error);
-                    alert("Failed to update status.");
+                    toast.error("Failed to update status.");
                 }
             }
 
@@ -945,7 +1033,7 @@
                     const snapshot = await db.collection('orders').where('userId', '==', user.uid).get();
 
                     if (snapshot.empty) {
-                        alert("No orders found.");
+                        toast.warning("No orders found.");
                         return;
                     }
 
@@ -974,22 +1062,24 @@
                         await batch.commit();
                         // Clear local cache to force refresh
                         localStorage.removeItem(`cachedOrders_${user.uid}`);
-                        alert("History cleared successfully.");
+                        toast.success("History cleared successfully.");
                     } else {
-                        alert("No past orders to clear.");
+                        toast.warning("No past orders to clear.");
                     }
                 } catch (error) {
                     console.error("Error clearing history:", error);
-                    alert("Failed to clear history.");
+                    toast.error("Failed to clear history.");
                 }
             }
 
             // --- Feedback Logic ---
             let currentFeedbackOrderId = null;
             let currentRating = 0;
+            let currentFeedbackOrderDisplayId = null;
 
             window.openFeedbackModal = function (orderId, orderDisplayId, itemsText) {
                 currentFeedbackOrderId = orderId;
+                currentFeedbackOrderDisplayId = orderDisplayId;
                 const idEl = document.getElementById('fb-order-id');
                 const itemsEl = document.getElementById('fb-order-items');
 
@@ -1033,7 +1123,7 @@
                 if (!currentFeedbackOrderId) return;
 
                 if (currentRating === 0) {
-                    alert("Please select a rating (tap a chip!)");
+                    toast.warning("Please select a rating");
                     return;
                 }
 
@@ -1047,6 +1137,7 @@
                 }
 
                 try {
+                    // Update Order Doc
                     await db.collection('orders').doc(currentFeedbackOrderId).update({
                         feedback: {
                             rating: currentRating,
@@ -1056,12 +1147,28 @@
                         feedbackSubmitted: true
                     });
 
+                    // Also store in main order_feedback collection
+                    try {
+                        await db.collection('order_feedback').add({
+                            orderId: currentFeedbackOrderId,
+                            orderNumber: currentFeedbackOrderDisplayId,
+                            rating: currentRating,
+                            comment: comment,
+                            createdAt: new Date().toISOString(),
+                            userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null,
+                            userName: firebase.auth().currentUser ? (firebase.auth().currentUser.displayName || 'User') : 'Guest'
+                        });
+                    } catch (err) {
+                        console.error("Error saving to reviews collection:", err);
+                        // Continue even if this fails, as order update succeeded
+                    }
+
                     // Success Feedback
                     closeFeedbackModal();
 
                 } catch (error) {
                     console.error("Error submitting feedback:", error);
-                    alert("Failed to submit feedback. Please try again.");
+                    toast.error("Failed to submit feedback. Please try again.");
                 } finally {
                     if (btn) {
                         btn.disabled = false;
@@ -1079,25 +1186,21 @@
             });
         </script>
     </main>
-    <script src="../js/translations.js"></script>
+
+    <script src="../js/shared-layout.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/fcm_foreground.js"></script>
-    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
     <script>
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.user-sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
-            }
-        }
-
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
         // CSV EXPORT LOGIC
         function exportToCSV(filename, headers, rows) {
             if (!rows || !rows.length) {
-                alert("No data to export.");
+                toast.warning("No data to export.");
                 return;
             }
             const csvContent = [
@@ -1120,7 +1223,7 @@
         function downloadUserOrdersCSV() {
             const user = firebase.auth().currentUser;
             if (!user) {
-                alert("Please login to download orders.");
+                toast.warning("Please login to download orders.");
                 return;
             }
 
@@ -1129,7 +1232,7 @@
             const cachedData = localStorage.getItem(cacheKey);
 
             if (!cachedData) {
-                alert("No order data found. Please wait for orders to load.");
+                toast.warning("No order data found. Please wait for orders to load.");
                 return;
             }
 
@@ -1138,7 +1241,7 @@
                 orders = JSON.parse(cachedData);
             } catch (e) {
                 console.error("Error parsing cached orders", e);
-                alert("Error reading order data.");
+                toast.error("Error reading order data.");
                 return;
             }
 
@@ -1150,7 +1253,7 @@
             );
 
             if (pastOrders.length === 0) {
-                alert("No past orders to export.");
+                toast.warning("No past orders to export.");
                 return;
             }
 

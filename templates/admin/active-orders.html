@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXEHBX2S2V', { send_page_view: true });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Orders - Foodly Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="admin-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="active-orders.html" class="active">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </a>
+                <a href="order-history.html">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </a>
+                <a href="analytics.html">
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
+                </a>
+                <a href="reviews.html">
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
+                </a>
+                <a href="menu-items.html">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </a>
+                <a href="profile.html">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </a>
+                <a href="settings.html">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </a>
+                <a href="#" onclick="logout(); return false;">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-orders">0</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-revenue">₹0.00</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stats-pending">0</div>
+                    <div class="stat-label">Pending Orders</div>
+                </div>
+            </div>
+
+            <!-- Active Orders Section -->
+            <div class="section-title">
+                <h2>Active Orders Board</h2>
+            </div>
+
+            <div class="split-orders-container">
+                <!-- Meal Column -->
+                <div class="orders-column">
+                    <div class="orders-column-header">
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                🍲 Meal Orders
+                            </h3>
+                            <small class="text-muted">Main Course items</small>
+                        </div>
+                        <button class="action-btn btn-complete" onclick="completeAllOrders('active-meal-orders-grid')"
+                            style="font-size: 0.85rem; padding: 6px 12px; white-space: nowrap;">
+                            Complete All
+                        </button>
+                    </div>
+                    <div id="active-meal-orders-grid" class="orders-list-body">
+                        <!-- JS Populates Here -->
+                    </div>
+                </div>
+
+                <!-- Snack Column -->
+                <div class="orders-column">
+                    <div class="orders-column-header">
+                        <div style="flex: 1;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                                🍿 Quick Snacks
+                            </h3>
+                            <small class="text-muted">Packets & Drinks</small>
+                        </div>
+                        <button class="action-btn btn-complete" onclick="completeAllOrders('active-snack-orders-grid')"
+                            style="font-size: 0.85rem; padding: 6px 12px; white-space: nowrap;">
+                            Complete All
+                        </button>
+                    </div>
+                    <div id="active-snack-orders-grid" class="orders-list-body">
+                        <!-- JS Populates Here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        window.foodItems = [];
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/main.js"></script>
+    <script src="admin-shared.js"></script>
+    <script src="admin-orders.js"></script>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initRealTimeOrders();
+            initStatsListener();
+        });
+    </script>
+</body>
+
+</html>

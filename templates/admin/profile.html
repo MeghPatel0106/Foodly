@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXEHBX2S2V', { send_page_view: true });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Foodly Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="admin-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <style>
+        /* Professional Profile Page Styles - Matching User Panel */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .profile-body {
+            padding: 2rem;
+            margin-top: 0;
+        }
+
+        .profile-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-wrapper img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+
+        .profile-email {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Stats Section */
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fc 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-box .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .stat-box .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .stat-box .stat-icon.green {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .stat-box .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .stat-box .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .form-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Avatar Selection Modal */
+        .avatar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .avatar-modal.active {
+            display: flex;
+        }
+
+        .avatar-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .avatar-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .avatar-modal-body {
+            padding: 1.5rem;
+        }
+
+        .upload-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .upload-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .upload-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .upload-option i {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-option h4 {
+            color: #1a1a2e;
+            margin: 0.5rem 0 0.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .upload-option p {
+            color: #666;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        .upload-option .file-selected {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .avatar-grid-modal {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .avatar-option {
+            cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-option.selected {
+            border-color: var(--primary-color) !important;
+            border-width: 5px !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+            transform: scale(1.05);
+        }
+
+        .avatar-option img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+
+        .select-avatar-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #ccc;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: not-allowed;
+            margin-top: 1.5rem;
+            transition: background 0.3s;
+        }
+
+        .select-avatar-btn.active {
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                flex-direction: column;
+            }
+
+            .avatar-grid-modal {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .profile-body {
+                padding: 0 1rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="active-orders.html">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </a>
+                <a href="order-history.html">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </a>
+                <a href="analytics.html">
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
+                </a>
+                <a href="reviews.html">
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
+                </a>
+                <a href="menu-items.html">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </a>
+                <a href="profile.html" class="active">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </a>
+                <a href="settings.html">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </a>
+                <a href="#" onclick="logoutAdmin(); return false;">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Profile Content - Matching User Panel Design -->
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-body">
+                        <!-- Avatar Section -->
+                        <div class="profile-avatar-section">
+                            <div class="avatar-wrapper" onclick="openAvatarModal()">
+                                <img id="profile-page-avatar"
+                                    src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profile Avatar">
+                                <div class="avatar-edit-overlay">
+                                    <i data-lucide="camera" width="12" height="12"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;">
+                            <h2 class="profile-name" id="profile-page-name">Admin User</h2>
+                            <p class="profile-email" id="profile-page-email-display">admin@foodly.com</p>
+                        </div>
+
+                        <!-- Stats Row - TOTAL ORDERS & TOTAL REVENUE -->
+                        <div class="stats-row">
+                            <div class="stat-box">
+                                <div class="stat-icon blue">
+                                    <i data-lucide="shopping-bag"></i>
+                                </div>
+                                <div class="stat-value" id="stat-total-orders">0</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-icon green">
+                                    <i data-lucide="indian-rupee"></i>
+                                </div>
+                                <div class="stat-value" id="stat-total-revenue">₹0.00</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Section -->
+                        <div class="form-section">
+                            <h3>Personal Information</h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="page-profile-name" placeholder="Your Name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" id="page-profile-email" disabled>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" id="page-profile-phone" placeholder="Enter phone number"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+                                </div>
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="page-profile-gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="save-btn" onclick="saveAdminProfile()">
+                                <i data-lucide="save" width="18" height="18"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div class="avatar-modal" id="avatarModal">
+        <div class="avatar-modal-content">
+            <div class="avatar-modal-header">
+                <h3>Change Profile Picture</h3>
+                <button class="close-modal-btn" onclick="closeAvatarModal()">&times;</button>
+            </div>
+            <div class="avatar-modal-body">
+                <!-- Upload Option -->
+                <div class="upload-option" id="uploadOptionBox" onclick="triggerFileUpload()">
+                    <i data-lucide="upload" width="32" height="32"></i>
+                    <h4>Upload Photo</h4>
+                    <p>Choose an image from your device</p>
+                    <p class="file-selected" id="file-selected-text" style="display: none;"></p>
+                </div>
+
+                <div class="divider">
+                    <span>or choose an avatar</span>
+                </div>
+
+                <!-- Avatar Grid -->
+                <div class="avatar-grid-modal" id="avatar-grid-modal">
+                    <!-- Populated by JS -->
+                </div>
+
+                <button class="select-avatar-btn" id="applyAvatarBtn" onclick="applyAvatarSelection()">Select an option
+                    above</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+            authDomain: "foodly-40d16.firebaseapp.com",
+            projectId: "foodly-40d16",
+            storageBucket: "foodly-40d16.firebasestorage.app",
+            appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Extended avatar list
+        const avatarList = [
+            'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140037.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140051.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140061.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140039.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997662.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997660.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997674.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997679.png',
+            'https://cdn-icons-png.flaticon.com/512/3006/3006876.png',
+            'https://cdn-icons-png.flaticon.com/512/3006/3006896.png'
+        ];
+
+        // State variables
+        let currentAvatarUrl = null;     // The actual saved avatar
+        let pendingAvatarUrl = null;     // Temp selection in modal (preset avatar)
+        let pendingUploadedFile = null;  // Temp uploaded file
+        let selectionType = null;        // 'avatar' or 'upload'
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initAvatarGrid();
+            setupFileUpload();
+
+            // Auth listener
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (!user) {
+                    window.location.href = '../index.html';
+                    return;
+                }
+
+                // Check admin role
+                const snap = await db.collection("users").doc(user.uid).get();
+                if (!snap.exists || snap.data().role !== "admin") {
+                    window.location.href = '../menu.html';
+                    return;
+                }
+
+                // Load profile data
+                loadAdminProfileData(user);
+            });
+        });
+
+        function initAvatarGrid() {
+            const grid = document.getElementById('avatar-grid-modal');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            avatarList.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                div.innerHTML = `<img src="${url}" alt="Avatar ${index + 1}">`;
+                div.addEventListener('click', function () {
+                    handleAvatarClick(url, div);
+                });
+                grid.appendChild(div);
+            });
+        }
+
+        function handleAvatarClick(url, element) {
+            // Clear all selections
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById('uploadOptionBox').classList.remove('selected');
+            document.getElementById('file-selected-text').style.display = 'none';
+
+            // Select this avatar
+            element.classList.add('selected');
+            pendingAvatarUrl = url;
+            pendingUploadedFile = null;
+            selectionType = 'avatar';
+
+            // Update button text
+            updateApplyButton('Choose Avatar');
+        }
+
+        function openAvatarModal() {
+            // Reset modal state
+            pendingAvatarUrl = null;
+            pendingUploadedFile = null;
+            selectionType = null;
+
+            // Clear selections
+            document.querySelectorAll('.avatar-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById('uploadOptionBox').classList.remove('selected');
+            document.getElementById('file-selected-text').style.display = 'none';
+
+            // Reset button
+            const btn = document.getElementById('applyAvatarBtn');
+            btn.textContent = 'Select an option above';
+            btn.classList.remove('active');
+
+            // Clear file input
+            document.getElementById('avatar-upload-input').value = '';
+
+            document.getElementById('avatarModal').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function closeAvatarModal() {
+            // Simply close - no changes applied since button wasn't clicked
+            document.getElementById('avatarModal').classList.remove('active');
+        }
+
+        function updateApplyButton(text) {
+            const btn = document.getElementById('applyAvatarBtn');
+            btn.textContent = text;
+            btn.classList.add('active');
+        }
+
+        function triggerFileUpload() {
+            document.getElementById('avatar-upload-input').click();
+        }
+
+        function setupFileUpload() {
+            const fileInput = document.getElementById('avatar-upload-input');
+            fileInput.addEventListener('change', function (e) {
+                if (!this.files || !this.files[0]) return;
+
+                const file = this.files[0];
+
+                // Clear avatar grid selections
+                document.querySelectorAll('.avatar-option').forEach(el => {
+                    el.classList.remove('selected');
+                });
+
+                // Mark upload box as selected
+                document.getElementById('uploadOptionBox').classList.add('selected');
+
+                // Show file name
+                const fileText = document.getElementById('file-selected-text');
+                fileText.textContent = '✓ ' + file.name;
+                fileText.style.display = 'block';
+
+                // Store pending file
+                pendingUploadedFile = file;
+                pendingAvatarUrl = null;
+                selectionType = 'upload';
+
+                // Update button text
+                updateApplyButton('Upload Photo');
+            });
+        }
+
+        async function applyAvatarSelection() {
+            const btn = document.getElementById('applyAvatarBtn');
+            if (!btn.classList.contains('active')) {
+                showToast('Please select an avatar or upload a photo first', 'warning');
+                return;
+            }
+
+            if (selectionType === 'avatar' && pendingAvatarUrl) {
+                // Apply preset avatar immediately
+                currentAvatarUrl = pendingAvatarUrl;
+                document.getElementById('profile-page-avatar').src = currentAvatarUrl;
+                closeAvatarModal();
+                showToast('Avatar selected! Click "Save Changes" to save permanently.', 'success');
+
+            } else if (selectionType === 'upload' && pendingUploadedFile) {
+                // Upload file to Firebase Storage
+                btn.textContent = 'Uploading...';
+                btn.classList.remove('active');
+
+                try {
+                    const timestamp = Date.now();
+                    const cleanName = pendingUploadedFile.name.replace(/[^a-zA-Z0-9.]/g, "_");
+                    const path = 'avatars/' + timestamp + "_" + cleanName;
+
+                    const storageRef = storage.ref().child(path);
+                    const snapshot = await storageRef.put(pendingUploadedFile);
+                    const downloadURL = await snapshot.ref.getDownloadURL();
+
+                    currentAvatarUrl = downloadURL;
+                    document.getElementById('profile-page-avatar').src = currentAvatarUrl;
+
+                    closeAvatarModal();
+                    showToast('Photo uploaded! Click "Save Changes" to save permanently.', 'success');
+
+                } catch (error) {
+                    console.error("Upload error:", error);
+                    showToast('Failed to upload photo: ' + error.message, 'error');
+                    updateApplyButton('Upload Photo');
+                }
+            }
+        }
+
+        async function loadAdminProfileData(user) {
+            try {
+                // Get user profile
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const data = userDoc.exists ? userDoc.data() : {};
+
+                // Get ALL completed orders for admin stats
+                const ordersSnap = await db.collection('orders').where('status', '==', 'Completed').get();
+                let totalOrders = 0;
+                let totalRevenue = 0;
+
+                ordersSnap.forEach(doc => {
+                    totalOrders++;
+                    const orderData = doc.data();
+                    totalRevenue += parseFloat(orderData.total || 0);
+                });
+
+                // Populate UI - Header
+                document.getElementById('profile-page-name').innerText = data.name || user.displayName || 'Admin';
+                document.getElementById('profile-page-email-display').innerText = user.email;
+
+                const avatarUrl = data.avatar || user.photoURL || 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png';
+                document.getElementById('profile-page-avatar').src = avatarUrl;
+                currentAvatarUrl = avatarUrl;
+
+                // Form fields
+                document.getElementById('page-profile-name').value = data.name || user.displayName || '';
+                document.getElementById('page-profile-email').value = user.email;
+                document.getElementById('page-profile-phone').value = data.phoneNumber || data.phone || '';
+                document.getElementById('page-profile-gender').value = data.gender || '';
+
+                // Stats - Total Orders & Total Revenue
+                document.getElementById('stat-total-orders').innerText = totalOrders;
+                document.getElementById('stat-total-revenue').innerText = '₹' + totalRevenue.toFixed(2);
+
+            } catch (error) {
+                console.error("Error loading profile:", error);
+                showToast('Error loading profile data', 'error');
+            }
+        }
+
+        async function saveAdminProfile() {
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                showToast('Please login first', 'error');
+                return;
+            }
+
+            const name = document.getElementById('page-profile-name').value;
+            const phone = document.getElementById('page-profile-phone').value;
+            const gender = document.getElementById('page-profile-gender').value;
+
+            if (!name || !phone || !gender) {
+                showToast('Please fill in name, phone, and gender.', 'warning');
+                return;
+            }
+
+            const btn = document.querySelector('.save-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                // Update Firebase Auth profile (only if not base64)
+                const updatePayload = { displayName: name };
+                if (currentAvatarUrl && !currentAvatarUrl.startsWith('data:')) {
+                    updatePayload.photoURL = currentAvatarUrl;
+                }
+                await user.updateProfile(updatePayload);
+
+                // Update Firestore
+                await db.collection('users').doc(user.uid).set({
+                    name: name,
+                    phoneNumber: phone,
+                    gender: gender,
+                    avatar: currentAvatarUrl || null
+                }, { merge: true });
+
+                // Update session storage for navbar sync
+                let cached = {};
+                try { cached = JSON.parse(sessionStorage.getItem('foodly_user_profile_v2') || '{}'); } catch (e) { }
+                cached.name = name;
+                cached.avatar = currentAvatarUrl;
+                cached.phoneNumber = phone;
+                cached.gender = gender;
+                cached.email = user.email;
+                sessionStorage.setItem('foodly_user_profile_v2', JSON.stringify(cached));
+
+                // Update header text
+                document.getElementById('profile-page-name').innerText = name;
+
+                showToast('Profile saved successfully!', 'success');
+
+            } catch (error) {
+                console.error("Save error:", error);
+                showToast('Error updating profile: ' + error.message, 'error');
+            } finally {
+                btn.innerHTML = '<i data-lucide="save" width="18" height="18"></i> Save Changes';
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // Sidebar Toggle
+        function toggleAdminSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+
+            if (sidebar) {
+                const isClosed = !sidebar.classList.contains('show');
+
+                if (isClosed) {
+                    sidebar.classList.add('show');
+                    if (overlay) {
+                        overlay.style.display = 'block';
+                        setTimeout(() => overlay.style.opacity = '1', 10);
+                    }
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    sidebar.classList.remove('show');
+                    if (overlay) {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 300);
+                    }
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+
+        // Logout
+        function logoutAdmin() {
+            firebase.auth().signOut().then(() => {
+                localStorage.removeItem('admin_active_tab');
+                window.location.href = '../index.html';
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                showToast("Error logging out", 'error');
+            });
+        }
+
+        // Toast helper
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: 'linear-gradient(to right, #00b09b, #96c93d)',
+                error: 'linear-gradient(to right, #ff5f6d, #ffc371)',
+                warning: 'linear-gradient(to right, #f093fb, #f5576c)',
+                info: 'linear-gradient(to right, #4facfe, #00f2fe)'
+            };
+
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: colors[type] || colors.info
+                }
+            }).showToast();
+        }
+    </script>
+</body>
+
+</html>

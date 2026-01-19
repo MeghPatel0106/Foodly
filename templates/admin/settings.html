@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXEHBX2S2V', { send_page_view: true });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Foodly Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="admin-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="active-orders.html">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </a>
+                <a href="order-history.html">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </a>
+                <a href="analytics.html">
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
+                </a>
+                <a href="reviews.html">
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
+                </a>
+                <a href="menu-items.html">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </a>
+                <a href="profile.html">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </a>
+                <a href="settings.html" class="active">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </a>
+                <a href="#" onclick="logout(); return false;">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Settings Section -->
+            <div class="section-title">
+                <h2>Settings</h2>
+            </div>
+
+            <div class="card"
+                style="background: white; padding: 25px; border-radius: var(--radius-lg); border: 1px solid #fee2e2;">
+                <h3 style="color: #dc2626; display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                    <i data-lucide="alert-triangle" color="#dc2626"></i>
+                    Danger Zone
+                </h3>
+                <p class="text-muted" style="margin-bottom: 2rem;">
+                    These actions are irreversible. Please be certain before proceeding.
+                </p>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 1px solid #eee;">
+                        <div>
+                            <h4 style="margin-bottom: 4px;">Delete All Menu Items</h4>
+                            <p class="text-sm text-muted">Removes all items from the menu (Meals & Snacks).</p>
+                        </div>
+                        <button onclick="resetAllMenu()" class="btn"
+                            style="background: #dc2626; color: white; border: none;">
+                            Delete All Menu Data
+                        </button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin-bottom: 4px;">Delete All Orders</h4>
+                            <p class="text-sm text-muted">Clears all active orders and order history.</p>
+                        </div>
+                        <button onclick="resetAllOrders()" class="btn"
+                            style="background: #dc2626; color: white; border: none;">
+                            Delete All Order Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        window.foodItems = [];
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/main.js"></script>
+    <script src="admin-shared.js"></script>
+    <script src="admin-settings.js"></script>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

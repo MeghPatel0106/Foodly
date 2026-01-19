@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXEHBX2S2V"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXEHBX2S2V', { send_page_view: true });
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Foodly Admin</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="admin-shared.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleAdminSidebar()"></div>
+        <aside class="sidebar" id="adminSidebar">
+            <div class="sidebar-logo">
+                Foodly Admin
+                <button onclick="toggleAdminSidebar()" class="close-sidebar-btn"
+                    style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="active-orders.html">
+                    <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
+                </a>
+                <a href="order-history.html">
+                    <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
+                </a>
+                <a href="analytics.html" class="active">
+                    <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
+                </a>
+                <a href="reviews.html">
+                    <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
+                </a>
+                <a href="menu-items.html">
+                    <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
+                </a>
+                <a href="profile.html">
+                    <i data-lucide="user" style="margin-right: 8px;"></i> Profile
+                </a>
+                <a href="settings.html">
+                    <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
+                </a>
+                <a href="#" onclick="logout(); return false;">
+                    <i data-lucide="log-out" style="margin-right: 8px;"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content animate-fade-in">
+            <!-- Mobile Hamburger Button -->
+            <button class="admin-hamburger-btn" onclick="toggleAdminSidebar()"
+                style="display: none; background: none; border: none; font-size: 1.8rem; cursor: pointer; margin-bottom: 20px;">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <!-- Analytics Section -->
+            <div class="section-title">
+                <h2>Analytics Overview</h2>
+                <div style="display: flex; gap: 10px;">
+                    <span id="analytics-last-updated" class="text-muted"
+                        style="font-size: 0.8rem; align-self: center;">Checking...</span>
+                    <button class="btn btn-sm btn-secondary" onclick="renderAnalytics(true)">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <!-- KPI Strip -->
+            <div class="kpi-strip">
+                <div class="kpi-card" style="border-left-color: var(--primary-color);">
+                    <div class="kpi-label">Total Revenue</div>
+                    <div class="kpi-value" id="kpi-revenue">₹0</div>
+                    <div class="kpi-subtext" id="kpi-revenue-trend">Loading...</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #28a745;">
+                    <div class="kpi-label">Total Orders</div>
+                    <div class="kpi-value" id="kpi-orders">0</div>
+                    <div class="kpi-subtext" id="kpi-orders-trend">Loading...</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #17a2b8;">
+                    <div class="kpi-label">Avg Order Value</div>
+                    <div class="kpi-value" id="kpi-aov">₹0</div>
+                    <div class="kpi-subtext">Per completed order</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #ffc107;">
+                    <div class="kpi-label">Orders / Hour</div>
+                    <div class="kpi-value" id="kpi-rate">0</div>
+                    <div class="kpi-subtext">Avg during business hours</div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="card"
+                style="margin-bottom: 20px; padding: 20px; border-radius: var(--radius-lg); background: white; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3
+                        style="margin: 0; font-size: 1.1rem; color: var(--dark-color); display: flex; align-items: center; gap: 8px;">
+                        📈 Revenue Trend
+                    </h3>
+                    <p class="text-sm text-muted">Last 7 Days</p>
+                </div>
+                <div style="height: 300px;">
+                    <canvas id="revenueTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+
+                <!-- Card 1: Top Selling -->
+                <div class="analytics-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: var(--dark-color); display: flex; align-items: center; gap: 8px;">
+                            🏆 Top Selling
+                        </h3>
+                        <select id="filter-top-selling" onchange="renderAnalytics()"
+                            style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; background: #f8f9fa;">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                        </select>
+                    </div>
+                    <div id="analytics-top-selling" style="flex: 1;">
+                        <p class="text-center text-muted">Loading data...</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Least Ordered / Slow Moving -->
+                <div class="analytics-card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: #dc3545; display: flex; align-items: center; gap: 8px;">
+                            📉 Slow Moving Items
+                        </h3>
+                        <select id="filter-least-ordered" onchange="renderAnalytics()"
+                            style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem; background: #f8f9fa;">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                        </select>
+                    </div>
+                    <div id="analytics-least-ordered" style="flex: 1;">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Demand Analysis -->
+                <div class="analytics-card">
+                    <div style="margin-bottom: 20px;">
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                            ⏰ Peak Demand Analysis
+                        </h3>
+                        <p class="text-sm text-muted" style="margin-top: 4px;">Hourly breakdown of all orders</p>
+                    </div>
+                    <div id="analytics-demand" style="flex: 1;">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
+                    <div id="analytics-peak-day"
+                        style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #eee;">
+                    </div>
+                </div>
+
+                <!-- Card 4: Category & Revenue -->
+                <div class="analytics-card">
+                    <div style="margin-bottom: 20px;">
+                        <h3
+                            style="margin: 0; font-size: 1.1rem; color: #6f42c1; display: flex; align-items: center; gap: 8px;">
+                            🥧 Revenue Distribution
+                        </h3>
+                        <p class="text-sm text-muted" style="margin-top: 4px;">By category and top items</p>
+                    </div>
+                    <div id="analytics-categories" style="flex: 1;">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Smart Insights Panel -->
+            <div class="insight-panel">
+                <h3
+                    style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; color: #6f42c1;">
+                    🧠 Smart Insights
+                </h3>
+                <div id="analytics-insights">
+                    <p class="text-muted">Generating insights...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+    <script>
+        window.foodItems = [];
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../../js/main.js"></script>
+    <script src="admin-shared.js"></script>
+    <script src="admin-analytics.js"></script>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAnalytics();
+        });
+    </script>
+</body>
+
+</html>

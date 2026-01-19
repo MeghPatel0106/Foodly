@@ -50,6 +50,46 @@
       {
         "source": "/404.html",
         "destination": "/templates/404.html"
+      },
+      {
+        "source": "/profile.html",
+        "destination": "/templates/profile.html"
+      },
+      {
+        "source": "/admin",
+        "destination": "/templates/admin/index.html"
+      },
+      {
+        "source": "/admin/",
+        "destination": "/templates/admin/index.html"
+      },
+      {
+        "source": "/admin/active-orders.html",
+        "destination": "/templates/admin/active-orders.html"
+      },
+      {
+        "source": "/admin/order-history.html",
+        "destination": "/templates/admin/order-history.html"
+      },
+      {
+        "source": "/admin/analytics.html",
+        "destination": "/templates/admin/analytics.html"
+      },
+      {
+        "source": "/admin/reviews.html",
+        "destination": "/templates/admin/reviews.html"
+      },
+      {
+        "source": "/admin/menu-items.html",
+        "destination": "/templates/admin/menu-items.html"
+      },
+      {
+        "source": "/admin/profile.html",
+        "destination": "/templates/admin/profile.html"
+      },
+      {
+        "source": "/admin/settings.html",
+        "destination": "/templates/admin/settings.html"
       }
     ]
   }

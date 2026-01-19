@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Foodly</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/toast-utils.js"></script>
+
+    <style>
+        /* Professional Profile Page Styles */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            padding: 1.5rem 2rem 3.5rem;
+            position: relative;
+        }
+
+        .profile-header h1 {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .profile-header p {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0.25rem 0 0;
+            font-size: 0.8rem;
+        }
+
+        .profile-body {
+            padding: 2rem;
+            margin-top: 0;
+        }
+
+        .profile-avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-wrapper img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 0.75rem;
+            text-align: center;
+        }
+
+        .profile-email {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Stats Section */
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(135deg, #f5f7fa 0%, #f8f9fc 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-box .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .stat-box .stat-icon.blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .stat-box .stat-icon.red {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .stat-box .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .stat-box .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: #f8f9fc;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .form-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: white;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Avatar Selection Modal */
+        .avatar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .avatar-modal.active {
+            display: flex;
+        }
+
+        .avatar-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .avatar-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .avatar-modal-body {
+            padding: 1.5rem;
+        }
+
+        .upload-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .upload-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .upload-option i {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-option h4 {
+            color: #1a1a2e;
+            margin: 0.5rem 0 0.25rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .upload-option p {
+            color: #666;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .avatar-grid-modal {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .avatar-option {
+            cursor: pointer;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .avatar-option.selected {
+            border-color: var(--primary-color) !important;
+            border-width: 5px !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+            transform: scale(1.05);
+            animation: avatarPulse 0.5s ease;
+        }
+
+        @keyframes avatarPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2);
+            }
+
+            100% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3);
+            }
+        }
+
+        .avatar-option img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+
+        .select-avatar-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row {
+                flex-direction: column;
+            }
+
+            .avatar-grid-modal {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .profile-body {
+                padding: 0 1rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="user-sidebar">
+        <div class="user-sidebar-header">
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">×</button>
+            <a href="menu.html" class="user-sidebar-logo">
+                <img src="../images/logo.png" alt="Logo" width="30">
+                Foodly
+            </a>
+        </div>
+
+        <ul class="user-sidebar-menu">
+            <li>
+                <a href="dashboard.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="layout-dashboard"></i>
+                    </span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=meal" class="user-sidebar-link" id="link-meal">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="utensils"></i>
+                    </span>
+                    Meal
+                </a>
+            </li>
+            <li>
+                <a href="menu.html?section=snack" class="user-sidebar-link" id="link-snack">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="coffee"></i>
+                    </span>
+                    Quick Snacks
+                </a>
+            </li>
+            <li>
+                <a href="orders.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="package"></i>
+                    </span>
+                    Order
+                </a>
+            </li>
+            <li>
+                <a href="invoices.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="indian-rupee"></i>
+                    </span>
+                    Invoice
+                </a>
+            </li>
+            <li>
+                <a href="cart.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="shopping-cart"></i>
+                    </span>
+                    Cart
+                    <span id="cart-count"
+                        style="margin-left: auto; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="analytics.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="trending-up"></i>
+                    </span>
+                    Analytics
+                </a>
+            </li>
+            <li>
+                <a href="settings.html" class="user-sidebar-link">
+                    <span class="user-sidebar-icon">
+                        <i data-lucide="settings"></i>
+                    </span>
+                    Setting
+                </a>
+            </li>
+        </ul>
+
+        <div class="user-sidebar-footer">
+            <button id="sidebar-auth-btn" class="btn btn-sm text-danger"
+                style="margin-top: 10px; padding-left: 0; color: #ef4444; display: flex; align-items: center; gap: 5px; background: none; border: none; cursor: pointer;">
+                <i data-lucide="log-out" width="16" height="16"></i>
+                <span id="sidebar-auth-text">Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="user-main-content">
+        <!-- LOCKED VIEW -->
+        <div id="locked-view" style="display: none; text-align: center; padding-top: 100px;">
+            <div
+                style="max-width: 400px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 20px; display: flex; justify-content: center;">
+                    <i data-lucide="lock" style="width: 48px; height: 48px;"></i>
+                </div>
+                <h2 style="margin-bottom: 10px;">Login Required</h2>
+                <p class="text-muted" style="margin-bottom: 30px;">Please login or register to access your profile.</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <a href="index.html" class="btn btn-primary"
+                        style="text-decoration: none; padding: 10px 30px;">Login</a>
+                    <a href="index.html" class="btn btn-secondary"
+                        style="text-decoration: none; padding: 10px 30px;">Register</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="main-app-content" style="display: none;">
+            <nav class="user-top-navbar">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="navbar-content-end">
+                    <!-- Notification Bell -->
+                    <div class="notification-icon-wrapper" onclick="toggleNotifications()">
+                        <span class="icon">
+                            <i data-lucide="bell"></i>
+                        </span>
+                        <span class="badge" id="nav-notification-badge" style="display: none;"></span>
+                    </div>
+
+                    <!-- Profile Widget (Active) -->
+                    <div class="user-profile-widget" onclick="location.reload()"
+                        style="border: none; box-shadow: none; background: rgba(0,0,0,0.05);">
+                        <div class="user-info-text">
+                            <span class="user-name" id="top-nav-name">...</span>
+                            <span class="user-email" id="top-nav-email"
+                                style="font-size: 0.75rem; color: var(--text-light);"></span>
+                        </div>
+                        <img id="top-nav-avatar" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                            class="user-avatar-circle" alt="Profile">
+                    </div>
+                </div>
+            </nav>
+
+            <div class="profile-container">
+                <div class="profile-card">
+                    <!-- Body -->
+                    <div class="profile-body">
+                        <!-- Avatar Section -->
+                        <div class="profile-avatar-section">
+                            <div class="avatar-wrapper" onclick="openAvatarModal()">
+                                <img id="profile-page-avatar"
+                                    src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profile Avatar">
+                                <div class="avatar-edit-overlay">
+                                    <i data-lucide="camera" width="12" height="12"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="avatar-upload-input" accept="image/*" style="display: none;"
+                                onchange="handleAvatarUpload(this)">
+                            <p id="profile-upload-status"
+                                style="display: none; color: var(--primary-color); font-weight: 600; font-size: 0.9rem; margin-top: 10px;">
+                                Uploading...</p>
+                            <h2 class="profile-name" id="profile-page-name">User Name</h2>
+                            <p class="profile-email" id="profile-page-email-display">email@example.com</p>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div class="stats-row">
+                            <div class="stat-box">
+                                <div class="stat-icon blue">
+                                    <i data-lucide="shopping-bag"></i>
+                                </div>
+                                <div class="stat-value" id="stat-total-orders">0</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-icon red">
+                                    <i data-lucide="heart"></i>
+                                </div>
+                                <div class="stat-value" id="stat-favourites">0</div>
+                                <div class="stat-label">Favourites</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Section -->
+                        <div class="form-section">
+                            <h3>Personal Information</h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="page-profile-name" placeholder="Your Name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" id="page-profile-email" disabled>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" id="page-profile-phone" placeholder="Enter phone number"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="10">
+                                </div>
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="page-profile-gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button class="save-btn" onclick="saveProfilePage()">
+                                <i data-lucide="save" width="18" height="18"
+                                    style="margin-right: 8px; vertical-align: middle;"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Avatar Selection Modal -->
+    <div class="avatar-modal" id="avatarModal">
+        <div class="avatar-modal-content">
+            <div class="avatar-modal-header">
+                <h3>Change Profile Picture</h3>
+                <button class="close-modal-btn" onclick="closeAvatarModal()">&times;</button>
+            </div>
+            <div class="avatar-modal-body">
+                <!-- Upload Option -->
+                <div class="upload-option" onclick="document.getElementById('avatar-upload-input').click()">
+                    <i data-lucide="upload" width="32" height="32"></i>
+                    <h4>Upload Photo</h4>
+                    <p>Choose an image from your device</p>
+                </div>
+
+                <div class="divider">
+                    <span>or choose an avatar</span>
+                </div>
+
+                <!-- Avatar Grid -->
+                <div class="avatar-grid-modal" id="avatar-grid-modal">
+                    <!-- Populated by JS -->
+                </div>
+
+                <button class="select-avatar-btn" id="apply-avatar-btn" onclick="applySelection()">Apply Avatar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBihlwqIg2rvfKC-Tt6sjKYSFKYn7ZBJwg",
+            authDomain: "foodly-40d16.firebaseapp.com",
+            projectId: "foodly-40d16",
+            storageBucket: "foodly-40d16.firebasestorage.app",
+
+            appId: "1:74040922594:web:667204bc01d84c8db5e9bb"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        auth.onAuthStateChanged(async (user) => {
+            updateSidebarAuthUI(user);
+
+            if (!user) {
+                document.getElementById('main-app-content').style.display = 'none';
+                document.getElementById('locked-view').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('locked-view').style.display = 'none';
+            const mainContent = document.getElementById('main-app-content');
+            mainContent.style.display = 'block';
+            setTimeout(() => mainContent.classList.add('auth-ready'), 10);
+
+            const snap = await db.collection("users").doc(user.uid).get();
+            if (snap.exists && snap.data().role === "admin") {
+                window.location.href = "admin.html";
+            }
+
+            // Init Profile Page Logic
+            initProfilePage(user);
+        });
+
+        // Extended avatar list
+        const avatarList = [
+            'https://cdn-icons-png.flaticon.com/512/4140/4140048.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140037.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140051.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140061.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140039.png',
+            'https://cdn-icons-png.flaticon.com/512/4140/4140047.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997662.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997660.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997674.png',
+            'https://cdn-icons-png.flaticon.com/512/6997/6997679.png',
+            'https://cdn-icons-png.flaticon.com/512/3006/3006876.png',
+            'https://cdn-icons-png.flaticon.com/512/3006/3006896.png'
+        ];
+
+        let selectedAvatarUrl = null;
+        let selectedImageFile = null;
+        let selectionType = null; // 'avatar' or 'upload'
+
+        function initAvatarGrid() {
+            const grid = document.getElementById('avatar-grid-modal');
+            if (!grid) {
+                console.error('Avatar grid not found!');
+                return;
+            }
+            grid.innerHTML = '';
+
+            avatarList.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                div.innerHTML = `<img src="${url}" alt="Avatar ${index + 1}">`;
+
+                // Add click handler
+                div.addEventListener('click', function () {
+                    console.log('Avatar clicked:', url);
+                    handleAvatarClick(url, div);
+                });
+
+                grid.appendChild(div);
+            });
+
+            console.log('Avatar grid initialized with', avatarList.length, 'avatars');
+        }
+
+        function handleAvatarClick(url, element) {
+            console.log('=== selectAvatar called ===');
+            console.log('URL:', url);
+            console.log('Element:', element);
+
+            // Remove previous selection
+            const allAvatars = document.querySelectorAll('.avatar-option');
+            console.log('Found', allAvatars.length, 'avatar options');
+            allAvatars.forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // Add selection to clicked
+            element.classList.add('selected');
+            console.log('Added "selected" class to element');
+            console.log('Element classes:', element.className);
+
+            // Set variables
+            selectedAvatarUrl = url;
+            selectedImageFile = null;
+            selectionType = 'avatar';
+
+            console.log('Variables set:');
+            console.log('  selectedAvatarUrl:', selectedAvatarUrl);
+            console.log('  selectionType:', selectionType);
+
+            // Update button text
+            const btn = document.getElementById('apply-avatar-btn');
+            if (btn) {
+                btn.textContent = 'Apply Avatar';
+                console.log('Button text updated to: Apply Avatar');
+            } else {
+                console.error('Button not found!');
+            }
+        }
+
+        function openAvatarModal() {
+            selectedAvatarUrl = null;
+            selectedImageFile = null;
+            selectionType = null;
+            initAvatarGrid();
+            document.getElementById('avatarModal').classList.add('active');
+
+            // Reset button
+            const btn = document.getElementById('apply-avatar-btn');
+            if (btn) btn.textContent = 'Apply Avatar';
+
+            lucide.createIcons();
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').classList.remove('active');
+            selectedAvatarUrl = null;
+            selectedImageFile = null;
+            selectionType = null;
+        }
+
+        // Helper to update session storage cache immediately to prevent race conditions
+        function updateSessionStorageAvatar(avatarUrl) {
+            try {
+                const PROFILE_CACHE_KEY = 'foodly_user_profile_v2';
+                let cached = {};
+                try { cached = JSON.parse(sessionStorage.getItem(PROFILE_CACHE_KEY) || '{}'); } catch (e) { }
+                cached.avatar = avatarUrl;
+                sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(cached));
+            } catch (e) {
+                console.warn('Failed to update session storage avatar:', e);
+            }
+        }
+
+        function applySelection() {
+            if (selectionType === 'avatar' && selectedAvatarUrl) {
+                // Apply avatar
+                document.getElementById('profile-page-avatar').src = selectedAvatarUrl;
+                document.getElementById('top-nav-avatar').src = selectedAvatarUrl;
+                window.selectedAvatar = selectedAvatarUrl;
+
+                // Immediately update session storage to prevent race condition with main.js cache restoration
+                updateSessionStorageAvatar(selectedAvatarUrl);
+
+                closeAvatarModal();
+                toast.success('Avatar updated! Click Save Changes to confirm.');
+            } else if (selectionType === 'upload' && selectedImageFile) {
+                // Process uploaded image
+                processUploadedImage(selectedImageFile);
+            } else {
+                toast.warning('Please select an avatar or upload an image');
+            }
+        }
+
+        function processUploadedImage(file) {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+
+            const preview = document.getElementById('profile-page-avatar');
+            const btn = document.getElementById('apply-avatar-btn');
+            const originalBtnText = btn.textContent;
+            btn.textContent = 'Uploading...';
+            btn.disabled = true;
+
+            // Try Firebase Storage
+            const storageRef = firebase.storage().ref();
+            const fileRef = storageRef.child(`users/${user.uid}/profile_${Date.now()}.jpg`);
+
+            fileRef.put(file).then(snapshot => {
+                return snapshot.ref.getDownloadURL();
+            }).then(url => {
+                preview.src = url;
+                document.getElementById('top-nav-avatar').src = url;
+                window.selectedAvatar = url;
+                // Immediately update session storage to prevent race condition
+                updateSessionStorageAvatar(url);
+                closeAvatarModal();
+                toast.success('Photo uploaded! Click Save Changes to confirm.');
+            }).catch(error => {
+                // Fallback: base64
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_SIZE = 250;
+                        let width = img.width, height = img.height;
+
+                        if (width > height && width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        } else if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        preview.src = dataUrl;
+                        document.getElementById('top-nav-avatar').src = dataUrl;
+                        window.selectedAvatar = dataUrl;
+                        // Immediately update session storage to prevent race condition
+                        updateSessionStorageAvatar(dataUrl);
+                        closeAvatarModal();
+                        toast.success('Photo uploaded! Click Save Changes to confirm.');
+                    };
+                    img.onerror = () => toast.error("Failed to process image.");
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }).finally(() => {
+                btn.textContent = originalBtnText;
+                btn.disabled = false;
+            });
+        }
+
+        // Handle file input
+        window.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('avatar-upload-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    selectedImageFile = file;
+                    selectedAvatarUrl = null;
+                    selectionType = 'upload';
+
+                    // Update button
+                    const btn = document.getElementById('apply-avatar-btn');
+                    if (btn) btn.textContent = 'Select Image';
+
+                    // Clear avatar selections
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+
+                    toast.info('Image ready. Click "Select Image" to apply.');
+                });
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('avatarModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeAvatarModal();
+            }
+        });
+    </script>
+
+    <script src="../js/shared-layout.js"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>
