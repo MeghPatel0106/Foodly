@@ -860,6 +860,11 @@
                 document.getElementById('top-nav-avatar').src = selectedAvatarUrl;
                 window.selectedAvatar = selectedAvatarUrl;
 
+                // Mark that user has selected an avatar (prevents initProfilePage from overwriting)
+                window.isProfilePageAvatarSet = true;
+
+                console.log('[applySelection] Avatar applied:', selectedAvatarUrl);
+
                 // Immediately update session storage to prevent race condition with main.js cache restoration
                 updateSessionStorageAvatar(selectedAvatarUrl);
 
@@ -893,6 +898,8 @@
                 preview.src = url;
                 document.getElementById('top-nav-avatar').src = url;
                 window.selectedAvatar = url;
+                window.isProfilePageAvatarSet = true;
+                console.log('[processUploadedImage] Avatar uploaded to Storage:', url);
                 // Immediately update session storage to prevent race condition
                 updateSessionStorageAvatar(url);
                 closeAvatarModal();
@@ -923,6 +930,8 @@
                         preview.src = dataUrl;
                         document.getElementById('top-nav-avatar').src = dataUrl;
                         window.selectedAvatar = dataUrl;
+                        window.isProfilePageAvatarSet = true;
+                        console.log('[processUploadedImage] Avatar converted to base64');
                         // Immediately update session storage to prevent race condition
                         updateSessionStorageAvatar(dataUrl);
                         closeAvatarModal();

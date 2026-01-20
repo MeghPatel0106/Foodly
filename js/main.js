@@ -721,6 +721,7 @@ const PROFILE_CACHE_KEY = 'foodly_user_profile_v2'; // Cache Key
 let selectedAvatar = "";
 let isProfileMandatory = false;
 let isProfileListenerAttached = false; // Prevent duplicate listeners
+let isProfilePageAvatarSet = false; // Prevent avatar from being overwritten on profile page
 
 function initProfileListener() {
     if (isProfileListenerAttached) return; // STRICT SINGLE EXECUTION
@@ -750,13 +751,10 @@ function initProfileListener() {
             // For safety, we'll do a "Stale-While-Revalidate" approach:
             // If cache exists, we already showed it. We can optionally fetch in background to sync.
 
-            if (!sessionStorage.getItem(PROFILE_CACHE_KEY)) {
-                fetchUserProfile(user);
-            } else {
-                // Background sync (Optional: Remove if you want STRICT single read per session)
-                // For "STRICT SINGLE READ" requirement: Do NOT fetch again if cached.
-                console.log("Profile loaded from cache.");
-            }
+            // ALWAYS fetch from Firestore (stale-while-revalidate pattern)
+            // This ensures the avatar and profile data is always up-to-date
+            // The cache was already used for fast initial render above
+            fetchUserProfile(user);
         } else {
             // Logout cleanup
             sessionStorage.removeItem(PROFILE_CACHE_KEY);
@@ -812,6 +810,11 @@ async function fetchUserProfile(user) {
                 updateNavbarAvatar(profile.avatar);
             }
 
+            console.log('[fetchUserProfile] Loaded from Firestore:', {
+                name: profile.name,
+                avatar: profile.avatar ? profile.avatar.substring(0, 50) + '...' : null
+            });
+
             // CACHE IT (Session)
             sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
 
@@ -845,11 +848,11 @@ async function fetchUserProfile(user) {
 
 function updateNavbarAvatar(url) {
     const finalUrl = url || DEFAULT_AVATAR;
+    console.log('[updateNavbarAvatar] Setting avatar to:', finalUrl.substring(0, 30) + '...');
 
     const updateImg = (id) => {
         const img = document.getElementById(id);
         if (img) {
-            // Only update if changed to prevent flicker
             if (img.src !== finalUrl) {
                 img.src = finalUrl;
             }
@@ -859,11 +862,27 @@ function updateNavbarAvatar(url) {
             if (!img.getAttribute('width')) img.setAttribute('width', '40');
             if (!img.getAttribute('height')) img.setAttribute('height', '40');
             img.setAttribute('loading', 'lazy');
+            return true;
         }
+        return false;
     };
 
-    updateImg('nav-avatar-img');
-    updateImg('top-nav-avatar');
+    const foundNav = updateImg('nav-avatar-img');
+    const foundTop = updateImg('top-nav-avatar');
+
+    // FALLBACK: If ID not found, try class based selection (for shared layout injected content)
+    if (!foundTop) {
+        console.warn('[updateNavbarAvatar] ID "top-nav-avatar" not found! Trying class fallback...');
+        const avs = document.querySelectorAll('.user-avatar-circle');
+        avs.forEach(img => {
+            if (img.src !== finalUrl) img.src = finalUrl;
+        });
+    }
+
+    // EXPLICIT SYNC: If shared layout is present, force its update method
+    if (window.updateSharedProfile && typeof window.updateSharedProfile === 'function') {
+        window.updateSharedProfile(null, null, finalUrl);
+    }
 }
 
 function updateTopNavInfo(name, email) {
@@ -1009,7 +1028,7 @@ async function initProfilePage(user) {
     if (!document.getElementById('profile-page-name')) return;
 
     // Helper to populate UI
-    const populateProfileUI = (data, orderCount) => {
+    const populateProfileUI = (data, orderCount, isInitialLoad = false) => {
         // Stats
         const statOrders = document.getElementById('stat-total-orders');
         if (statOrders) statOrders.innerText = orderCount || 0;
@@ -1031,23 +1050,39 @@ async function initProfilePage(user) {
         const emailDisplay = document.getElementById('profile-page-email-display');
         if (emailDisplay) emailDisplay.innerText = user.email;
 
-        document.getElementById('profile-page-avatar').src = data.avatar || user.photoURL || DEFAULT_AVATAR;
+        // ONLY update avatar img and selectedAvatar on INITIAL load (first time only)
+        // This prevents subsequent initProfilePage calls from overwriting user's new avatar selection
+        // Check both local flag AND window flag (window flag is set by profile.html when user selects avatar)
+        if (!isProfilePageAvatarSet && !window.isProfilePageAvatarSet) {
+            document.getElementById('profile-page-avatar').src = data.avatar || user.photoURL || DEFAULT_AVATAR;
+            selectedAvatar = data.avatar || user.photoURL || DEFAULT_AVATAR;
+            window.selectedAvatar = selectedAvatar;
+            isProfilePageAvatarSet = true;
+            console.log('[initProfilePage] Initial avatar set:', selectedAvatar);
+        } else {
+            console.log('[initProfilePage] Avatar already set, skipping to preserve user selection. Flags:', {
+                local: isProfilePageAvatarSet,
+                window: window.isProfilePageAvatarSet
+            });
+        }
 
-        // Form
+        // Form (always update form fields)
         setVal('page-profile-name', data.name || user.displayName);
         setVal('page-profile-email', user.email);
         setVal('page-profile-phone', data.phoneNumber || user.phoneNumber);
         setVal('page-profile-gender', data.gender);
 
-        selectedAvatar = data.avatar || user.photoURL || DEFAULT_AVATAR;
-        window.selectedAvatar = selectedAvatar;
+        // SYNC NAVBAR: Ensure navbar avatar matches profile page
+        // This fixes the issue where profile page center is correct but top-right is old
+        const currentAvatar = data.avatar || user.photoURL || DEFAULT_AVATAR;
+        updateNavbarAvatar(currentAvatar);
     };
 
     // Try loading from cache first
     const cacheKey = `${FoodlyCache.KEYS.USER_PROFILE}_${user.uid}`;
     const cachedProfile = FoodlyCache.getStale(cacheKey);
     if (cachedProfile) {
-        populateProfileUI(cachedProfile.userData, cachedProfile.orderCount);
+        populateProfileUI(cachedProfile.userData, cachedProfile.orderCount, true);
 
         // Check if cache is fresh
         if (FoodlyCache.get(cacheKey)) {
@@ -1066,7 +1101,7 @@ async function initProfilePage(user) {
         orderCount: ordersSnap.size
     });
 
-    // Populate UI
+    // Populate UI (this is either first load or background refresh)
     populateProfileUI(data, ordersSnap.size);
 }
 
@@ -1090,18 +1125,36 @@ async function saveProfilePage() {
     btn.disabled = true;
 
     try {
+        // FIX: Read avatar from the DOM image element first (most reliable source)
+        // The profile-page-avatar img src is ALWAYS updated when user selects/uploads new avatar
+        const avatarImgElement = document.getElementById('profile-page-avatar');
+        const avatarFromDOM = avatarImgElement ? avatarImgElement.src : null;
+
+        // Use DOM value first, then window.selectedAvatar, then local selectedAvatar
+        const avatarToSave = avatarFromDOM || window.selectedAvatar || selectedAvatar;
+
+        console.log('[Profile Save] Avatar sources:', {
+            fromDOM: avatarFromDOM,
+            fromWindow: window.selectedAvatar,
+            fromLocal: selectedAvatar,
+            saving: avatarToSave
+        });
+
         const updatePayload = { displayName: name };
 
         // Fix: Only update Auth photoURL if it is NOT a base64 string
-        if (selectedAvatar && !selectedAvatar.startsWith('data:')) {
-            updatePayload.photoURL = selectedAvatar;
+        if (avatarToSave && !avatarToSave.startsWith('data:')) {
+            updatePayload.photoURL = avatarToSave;
         }
 
         await user.updateProfile(updatePayload);
 
         await db.collection('users').doc(user.uid).set({
-            name, phoneNumber: phone, gender, avatar: selectedAvatar
+            name, phoneNumber: phone, gender, avatar: avatarToSave
         }, { merge: true });
+
+        // Update local selectedAvatar to keep in sync
+        selectedAvatar = avatarToSave;
 
         // Update Cache/UI
 
