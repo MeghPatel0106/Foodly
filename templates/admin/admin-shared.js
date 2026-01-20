@@ -18,9 +18,12 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // STRICT ADMIN PROTECTION
+// Global flag to signal admin auth is ready
+window.adminAuthReady = false;
+
 firebase.auth().onAuthStateChanged(async (user) => {
     if (!user) {
-        window.location.href = "../index.html";
+        window.location.href = "/index.html";
         return;
     }
 
@@ -30,8 +33,13 @@ firebase.auth().onAuthStateChanged(async (user) => {
         .get();
 
     if (!snap.exists || snap.data().role !== "admin") {
-        window.location.href = "../menu.html";
+        window.location.href = "/menu.html";
+        return;
     }
+
+    // Admin auth confirmed - set flag and dispatch event
+    window.adminAuthReady = true;
+    window.dispatchEvent(new Event('adminAuthReady'));
 });
 
 // Mobile Sidebar Toggle
@@ -66,7 +74,7 @@ window.toggleAdminSidebar = function () {
 function logout() {
     firebase.auth().signOut().then(() => {
         localStorage.removeItem('admin_active_tab');
-        window.location.href = '../index.html';
+        window.location.href = '/index.html';
     }).catch((error) => {
         console.error("Logout Error:", error);
         alert("Error logging out");

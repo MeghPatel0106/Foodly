@@ -14,8 +14,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History - Foodly Admin</title>
-    <link rel="stylesheet" href="../../css/style.css">
-    <link rel="stylesheet" href="admin-shared.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/templates/admin/admin-shared.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -31,25 +31,25 @@
                     style="display: none; background: none; border: none; color: white; margin-left: auto; font-size: 1.5rem;">&times;</button>
             </div>
             <nav class="sidebar-menu">
-                <a href="active-orders.html">
+                <a href="/admin/active-orders.html">
                     <i data-lucide="clipboard-list" style="margin-right: 8px;"></i> Active Orders
                 </a>
-                <a href="order-history.html" class="active">
+                <a href="/admin/order-history.html" class="active">
                     <i data-lucide="scroll-text" style="margin-right: 8px;"></i> Order History
                 </a>
-                <a href="analytics.html">
+                <a href="/admin/analytics.html">
                     <i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analytics
                 </a>
-                <a href="reviews.html">
+                <a href="/admin/reviews.html">
                     <i data-lucide="star" style="margin-right: 8px;"></i> Reviews
                 </a>
-                <a href="menu-items.html">
+                <a href="/admin/menu-items.html">
                     <i data-lucide="utensils-crossed" style="margin-right: 8px;"></i> Menu Items
                 </a>
-                <a href="profile.html">
+                <a href="/admin/profile.html">
                     <i data-lucide="user" style="margin-right: 8px;"></i> Profile
                 </a>
-                <a href="settings.html">
+                <a href="/admin/settings.html">
                     <i data-lucide="settings" style="margin-right: 8px;"></i> Settings
                 </a>
                 <a href="#" onclick="logout(); return false;">
@@ -121,9 +121,9 @@
         window.foodItems = [];
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="../../js/main.js"></script>
-    <script src="admin-shared.js"></script>
-    <script src="admin-history.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/templates/admin/admin-shared.js"></script>
+    <script src="/templates/admin/admin-history.js"></script>
 
     <script>
         lucide.createIcons();

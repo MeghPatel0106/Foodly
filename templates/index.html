@@ -541,31 +541,36 @@
 
 
         async function sendWelcomeEmail(userEmail, userName) {
-            if (!userEmail) return Promise.resolve();
+            if (!userEmail) {
+                console.warn("No email provided for welcome email");
+                return Promise.resolve();
+            }
 
             const templateParams = {
                 email: userEmail,
                 name: userName || "Foodly User",
-                to_email: userEmail, // Redundant for compatibility
-                to_name: userName || "Foodly User" // Redundant for compatibility
+                to_email: userEmail,
+                to_name: userName || "Foodly User",
+                user_email: userEmail,
+                user_name: userName || "Foodly User"
             };
 
-            console.log("📨 Attempting to send welcome email:", templateParams);
+            console.log("📨 Sending welcome email to:", userEmail);
 
             try {
-                await emailjs.send(
+                const response = await emailjs.send(
                     "service_4hy0432",
                     "template_b31vsep",
                     templateParams,
-                    "4XCCsOQQDfpwybonc" // Direct key for fallback
+                    "4XCCsOQQDfpwybonc"
                 );
-                console.log("✅ Welcome email sent successfully");
+                console.log("✅ Welcome email sent successfully!", response);
+                return response;
             } catch (error) {
                 console.error("❌ Email send failed:", error);
+                // Don't throw - we don't want to block registration
+                return null;
             }
-
-            // Small buffer to ensure request is fully processed by the browser
-            return new Promise(resolve => setTimeout(resolve, 300));
         }
 
         // 👇 CHANGE THIS EMAIL TO YOUR ADMIN EMAIL
@@ -733,13 +738,9 @@
                     if (userData.role === 'admin' || userData.role === 'author') {
                         window.location.href = "admin.html";
                     } else {
-                        // Save FCM Token
-                        await saveFCMToken(user.uid);
                         window.location.href = "menu.html";
                     }
                 } else {
-                    // Save FCM Token
-                    await saveFCMToken(user.uid);
                     // Fallback if no doc (shouldn't happen for registered users)
                     window.location.href = "menu.html";
                 }
@@ -846,10 +847,15 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                toast.success("Registration Successful!");
-                await saveFCMToken(user.uid);
+                // Send welcome email and wait for it
                 await sendWelcomeEmail(email, name);
-                window.location.href = "menu.html?setupProfile=true";
+
+                toast.success("Registration Successful! Redirecting...");
+
+                // Small delay to ensure auth state is synced before redirect
+                setTimeout(() => {
+                    window.location.href = "menu.html?setupProfile=true";
+                }, 300);
             } catch (error) {
                 isLoginInProgress = false;
                 if (submitBtn) {

@@ -1,9 +1,17 @@
 /* === ADMIN ORDERS JAVASCRIPT === */
 
 let activeOrdersUnsubscribe = null;
+let statsUnsubscribe = null;
 
 function initRealTimeOrders() {
-    loadActiveOrders();
+    // Wait for admin auth to be confirmed before loading orders
+    if (window.adminAuthReady) {
+        loadActiveOrders();
+    } else {
+        window.addEventListener('adminAuthReady', () => {
+            loadActiveOrders();
+        }, { once: true });
+    }
 }
 
 function loadActiveOrders() {
@@ -239,7 +247,24 @@ async function completeAllOrders(containerId) {
 }
 
 function initStatsListener() {
-    db.collection('orders').onSnapshot((snapshot) => {
+    // Wait for admin auth to be confirmed before loading stats
+    if (window.adminAuthReady) {
+        startStatsListener();
+    } else {
+        window.addEventListener('adminAuthReady', () => {
+            startStatsListener();
+        }, { once: true });
+    }
+}
+
+function startStatsListener() {
+    // Prevent duplicate listeners
+    if (statsUnsubscribe) {
+        statsUnsubscribe();
+        statsUnsubscribe = null;
+    }
+
+    statsUnsubscribe = db.collection('orders').onSnapshot((snapshot) => {
         const orders = [];
         snapshot.forEach(doc => {
             orders.push({ id: doc.id, ...doc.data() });
