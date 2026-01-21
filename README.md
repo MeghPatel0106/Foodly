@@ -1,5 +1,13 @@
 # 🍔 Foodly — Smart Campus Food Ordering & Operations Platform
 
+
+
+![Firebase](https://img.shields.io/badge/Firebase-Cloud-orange?style=for-the-badge&logo=firebase)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow?style=for-the-badge&logo=javascript)
+![HTML5](https://img.shields.io/badge/HTML5-Markup-red?style=for-the-badge&logo=html5)
+![CSS3](https://img.shields.io/badge/CSS3-Styles-blue?style=for-the-badge&logo=css3)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-green?style=for-the-badge&logo=node.js)
+![GitHub](https://img.shields.io/badge/GitHub-VersionControl-black?style=for-the-badge&logo=github)
 > **Order Smart. Eat Fast. Zero Queues.**  
 A full-stack smart campus food ordering platform that enables real-time ordering, live order tracking, admin operations, feedback analytics, and scalable cloud integration using Firebase.
 
@@ -110,58 +118,93 @@ Foodly solves this by introducing::
 - 📈 Analytics & reporting  
 - 🔔 Notification trigger control  
 
+
 ---
 
 ## 🏗️ Tech Stack
 
-### Frontend
-- HTML5  
-- CSS3  
-- JavaScript  
+### 🌐 Frontend
+![HTML5](https://img.shields.io/badge/HTML5-red?style=flat-square&logo=html5)
+![CSS3](https://img.shields.io/badge/CSS3-blue?style=flat-square&logo=css3)
+![JavaScript](https://img.shields.io/badge/JavaScript-yellow?style=flat-square&logo=javascript)
 
-### Backend & Cloud
-- Firebase Authentication  
-- Firestore Database  
-- Firebase Cloud Messaging  
-- Firebase Hosting  
-- Google Analytics  
+### ☁️ Backend & Cloud
+![Firebase Hosting](https://img.shields.io/badge/Firebase-Hosting-orange?style=flat-square&logo=firebase)
+![Firestore](https://img.shields.io/badge/Firestore-Database-orange?style=flat-square)
+![Firebase Auth](https://img.shields.io/badge/Firebase-Auth-orange?style=flat-square)
+![Firebase Storage](https://img.shields.io/badge/Firebase-Storage-orange?style=flat-square)
+![Cloud Functions](https://img.shields.io/badge/Cloud-Functions-orange?style=flat-square)
+![Node.js](https://img.shields.io/badge/Node.js-green?style=flat-square&logo=node.js)
 
-### Tooling
-- Node.js  
-- Firebase CLI  
-- Git & GitHub  
-- VS Code  
+### 🧰 Tools
+![VS Code](https://img.shields.io/badge/VSCode-blue?style=flat-square&logo=visualstudiocode)
+![Git](https://img.shields.io/badge/Git-orange?style=flat-square&logo=git)
+![GitHub](https://img.shields.io/badge/GitHub-black?style=flat-square&logo=github)
+![Firebase CLI](https://img.shields.io/badge/Firebase-CLI-orange?style=flat-square)
 
-### Mobile (In Progress)
-- Kotlin  
-- Jetpack Compose  
-- Android Studio  
+---
+## 🏗️ System Architecture
+
+Foodly follows a **Serverless Web Application Architecture** built on Firebase services with client-side JavaScript-based notifications.
 
 ---
 
-## 🔥 Architecture Flow
+### 🌐 Presentation Layer (Client)
+- HTML5, CSS3, Vanilla JavaScript  
+- Firebase Web SDK  
+- Hosted on Firebase Hosting  
+- Handles UI rendering, authentication flow, order placement, real-time listeners, image upload/display, and in-page notifications  
 
-```
-User Web App / Android App
-        |
-        v
+---
+
+### ☁️ Backend Layer (Serverless)
+- Firebase Cloud Functions (Node.js)  
+- Firebase Admin SDK  
+- Handles secure backend logic such as order processing, invoice generation, validation, and automation  
+
+---
+
+### 🗄️ Data Layer (Managed Services)
+- 🔐 Firebase Authentication — User identity & access control  
+- 📦 Firestore Database — Orders, menu items, users, feedback  
+- 🖼 Firebase Storage — Food images and assets  
+- 📊 Google Analytics (optional) — Usage tracking  
+
+---
+### 🔁 Data Flow
+```text
+User Browser
+   |
+   |  (HTML / CSS / JavaScript)
+   v
+Firebase Hosting (Static Web App)
+   |
+   |  Firebase Web SDK
+   v
 Firebase Authentication
-        |
-        v
-Firestore Database
-        |
-        v
-Admin Dashboard
-        |
-        v
-Firebase Cloud Messaging
-        |
-        v
-Analytics & Reports
+   |
+   v
+Firestore Database  <---->  Firebase Storage
+   |
+   v
+Cloud Functions (Node.js)
+   |
+   v
+Client-side JavaScript Notifications
 ```
+
 
 ---
 
+### ✅ Architecture Benefits
+- Fully serverless and auto-scalable  
+- Real-time data synchronization  
+- No backend server maintenance  
+- Secure authentication and storage rules  
+- Lightweight client-side notifications  
+- Cost-efficient cloud infrastructure  
+- Production-ready deployment  
+---
 ## ⚙️ Installation & Setup
 
 ### ✅ Prerequisites
@@ -232,6 +275,7 @@ Foodly-main/
 │
 ├── templates/
 │   ├── index.html
+│   ├── profile.html
 │   ├── admin.html
 │   ├── dashboard.html
 │   ├── menu.html
@@ -241,7 +285,7 @@ Foodly-main/
 │   ├── invoices.html
 │   ├── settings.html
 │   └── 404.html
-│
+│    
 └── report/
     └── analysis_report.md
 ```
