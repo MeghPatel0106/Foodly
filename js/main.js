@@ -823,11 +823,13 @@ async function fetchUserProfile(user) {
             const isSetupUrl = urlParams.get('setupProfile') === 'true';
             const missingData = !data.gender || !data.avatar || !data.phoneNumber;
 
-            if (isSetupUrl || missingData) {
+            // Relaxed check: Only redirect if explicitly requested (registration flow)
+            // We do NOT force redirect for missing data anymore to allow browsing
+            if (isSetupUrl && !window.location.href.includes('profile.html')) {
                 openProfile(true);
-                if (isSetupUrl) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
+            }
+            if (isSetupUrl) {
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
 
         } else {
