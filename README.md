@@ -239,6 +239,11 @@ firebase serve
 or open `templates/index.html` using Live Server.
 
 ---
+###Admin portal
+Email:-foodly.mail.service@gmail.com
+Password:-Foodly@0101
+
+---
 
 ## 📂 Project Structure
 
